@@ -90,6 +90,7 @@ def ChooseAdventure():
             ChoiceReceived = True
         else:
             print('That\'s not a valid choice, try again...')
+            time.sleep(2)
             
     return Adventure
 
@@ -108,7 +109,7 @@ def CreateCharacter(Rolls = 3):
             Attributes.append(random.randint(3, 10))
             time.sleep(0.5)
         
-        print('\nYour adventurer is ready! His attributes are (from 3 to 10):')
+        print('\nYour adventurer is ready! Their attributes are (from 3 to 10):')
         print('- Strength: ' + str(Attributes[0]))
         print('- Agility: ' + str(Attributes[1]))
         print('- Intelligence: ' + str(Attributes[2]))
@@ -135,6 +136,7 @@ def CreateCharacter(Rolls = 3):
             Roll = Roll + 1
         else:
             print('That\'s not a valid choice, try again...')
+            time.sleep(2)
             
    
 def ReadCharacter(Name):
@@ -172,6 +174,7 @@ def ChooseCharacter():
             ChoiceReceived = True
         else:
             print('That\'s not a valid choice, try again...')
+            time.sleep(2)
             
     return Character
 
@@ -216,6 +219,7 @@ def StartingMenu():
             sys.exit()
         else:
             print('That\'s not a valid choice, try again...')
+            time.sleep(2)
             
             
     return Character, Adventure
