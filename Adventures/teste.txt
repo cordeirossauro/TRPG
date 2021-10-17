@@ -1,4 +1,4 @@
-*encounter*: encounter1
+*encounter*:  first_encounter  
 era uma vez um carinha bem acarinhado
 e dai o que aconteceu foi muito engraçado
 perdeu dois dedos do pe, e um da mao
@@ -10,10 +10,10 @@ e voce vem me dizer, que nao sabia da situacao
 
 
 
-*encounter*: encounter2*
+*encounter*: encounter2
 esse aqui e o encounter 2
 *options*
-1. fazer uma dancinha: encounter1
+1. fazer uma dancinha: first_encounter
 2. pular pro ladinho: encounter3
 *end*
 
@@ -23,9 +23,9 @@ esse aqui e o encounter 2
 
 
 
-*encounter*: encounter3*
+*encounter*:      encounter3
 esse aqui e o encounter 3
 *options*
-1. fazer uma dancinha: encounter1
+1. fazer uma dancinha: first_encounter
 2. pular pro ladinho: encounter2
 *end*

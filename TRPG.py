@@ -7,213 +7,211 @@ import random
 
 class Encounter:
     
-    def __init__(self, Name, Description, Options):
-        self.Name = Name
-        self.Description = Description
-        self.Options = Options
+    def __init__(self, name, description, options):
+        self.name = name
+        self.description = description
+        self.options = options
         
 class Character:
     
-    def __init__(self, Name, Strength, Agility, Intelligence, Charisma):
-        self.Name = Name
-        self.Strength = Strength
-        self.Agility = Agility
-        self.Intelligence = Intelligence
-        self.Charisma = Charisma
+    def __init__(self, name, stength, agility, intelligence, charisma):
+        self.name = name
+        self.stength = stength
+        self.agility = agility
+        self.intelligence = intelligence
+        self.charisma = charisma
         
         
-def ReadAdventure(AdventureFile):
-    f = open(('Adventures/' + AdventureFile), mode = 'r')
-    Lines = f.readlines()
-    Encounters = []
+def read_adventure(adventure_file):
+    f = open(('Adventures/' + adventure_file), mode = 'r')
+    lines = f.readlines()
+    encounters = {}
     
-    CurrentLineNumber = 0
-    TotalEncounters = 0
-    AdventureFinished = False
-    while AdventureFinished == False:
-        Line = Lines[CurrentLineNumber]
-        if Line.split(':')[0] == '*encounter*':
-            Name = Line.split(':')[1].rstrip('\n')
-            Description = ''
-            DescriptionFinished = False
-            while DescriptionFinished == False:
-                CurrentLineNumber = CurrentLineNumber + 1
-                Line = Lines[CurrentLineNumber]
-                if Line != '*options*\n':
-                    Description = Description + Line
+    current_line_number = 0
+    adventure_finished = False
+    while adventure_finished == False:
+        line = lines[current_line_number]
+        if line.split(':')[0] == '*encounter*':
+            name = line.split(':')[1].strip('\n ')
+            description = ''
+            description_finished = False
+            while description_finished == False:
+                current_line_number = current_line_number + 1
+                line = lines[current_line_number]
+                if line != '*options*\n':
+                    description = description + line
                 else:
-                    DescriptionFinished = True
+                    description_finished = True
                 
-            Options = {}
-            OptionsFinished = False
-            while OptionsFinished == False:
-                CurrentLineNumber = CurrentLineNumber + 1
-                Line = Lines[CurrentLineNumber]
-                if (Line != '*end*\n') & (Line != '*end*'):
-                    OptionNumber = Line.split('.')[0]
-                    Option = Line.split('.')[1]
-                    Options[OptionNumber] = Option
+            options = {}
+            options_finished = False
+            while options_finished == False:
+                current_line_number = current_line_number + 1
+                line = lines[current_line_number]
+                if (line != '*end*\n') & (line != '*end*'):
+                    option_number = line.split('.')[0]
+                    option = line
+                    options[option_number] = option
                 else:
-                    OptionsFinished = True
+                    options_finished = True
             
-            Encounters.append(Encounter(Name, Description, Options))
-            TotalEncounters = TotalEncounters + 1
+            encounters[name] = Encounter(name, description, options)
             
-        CurrentLineNumber = CurrentLineNumber + 1
-        if CurrentLineNumber >= len(Lines):
-            AdventureFinished = True
+        current_line_number = current_line_number + 1
+        if current_line_number >= len(lines):
+            adventure_finished = True
                 
     f.close()
-    return Encounters
+    return encounters
 
 
-def ChooseAdventure():
-    AdventureList = os.listdir('Adventures')
+def choose_adventure():
+    adventure_list = os.listdir('Adventures')
     print('\nChoose your adventure:')
-    Index = 0
+    index = 0
     
-    for Adventure in AdventureList:
-        Index = Index + 1
-        print(str(Index) + '. ' + Adventure)
+    for adventure in adventure_list:
+        index = index + 1
+        print(str(index) + '. ' + adventure)
     
-    Index = Index + 1
-    print(str(Index) + '. Return')
+    index = index + 1
+    print(str(index) + '. Return')
     
-    ChoiceReceived = False
-    while ChoiceReceived == False:
-        Choice = int(input('Your choice (number): '))
-        if (Choice > 0) & (Choice < Index):
-            Adventure = ReadAdventure(AdventureList[Choice - 1])
-            ChoiceReceived = True
-        elif Choice == Index:
-            Adventure = 0
-            ChoiceReceived = True
+    choice_received = False
+    while choice_received == False:
+        choice = int(input('Your choice (number): '))
+        if (choice > 0) & (choice < index):
+            adventure = read_adventure(adventure_list[choice - 1])
+            choice_received = True
+        elif choice == index:
+            adventure = 0
+            choice_received = True
         else:
             print('That\'s not a valid choice, try again...')
             time.sleep(2)
             
-    return Adventure
+    return adventure
 
 
-def CreateCharacter(Rolls = 3):
+def create_character(rolls = 3):
     print('Welcome to the character creator! First things first, what\'s your hero\'s name?')
-    Name = input()
+    name = input()
     
-    AttributesAccepted = False
-    Roll = 1
+    attributes_accepted = False
+    roll = 1
     
-    while (AttributesAccepted == False) & (Roll <= Rolls):
-        Attributes = []
-        for Index in range(0, 4):
-            print('Let\'s roll some dice and find out ' + Name + '\'s attributes' + '.' * Index, end = '\r')
-            Attributes.append(random.randint(3, 10))
+    while (attributes_accepted == False) & (roll <= rolls):
+        attributes = []
+        for index in range(0, 4):
+            print('Let\'s roll some dice and find out ' + name + '\'s attributes' + '.' * index, end = '\r')
+            attributes.append(random.randint(3, 10))
             time.sleep(0.5)
         
         print('\nYour adventurer is ready! Their attributes are (from 3 to 10):')
-        print('- Strength: ' + str(Attributes[0]))
-        print('- Agility: ' + str(Attributes[1]))
-        print('- Intelligence: ' + str(Attributes[2]))
-        print('- Charisma: ' + str(Attributes[3]) + '\n')
+        print('- Stength: ' + str(attributes[0]))
+        print('- Agility: ' + str(attributes[1]))
+        print('- Intelligence: ' + str(attributes[2]))
+        print('- Charisma: ' + str(attributes[3]) + '\n')
         
-        if Roll < Rolls:
-            Choice = input('Would you like to roll again? You have ' + str(Rolls - Roll) + ' more chance(s) (yes/no) \n').lower()
-        elif Roll == Rolls:
+        if roll < rolls:
+            choice = input('Would you like to roll again? You have ' + str(rolls - roll) + ' more chance(s) (yes/no) \n').lower()
+        elif roll == rolls:
             print('You\'re out of chances')
-            Choice = 'no'
+            choice = 'no'
         
-        if Choice == 'no':
+        if choice == 'no':
             print('Very well, your character was created!')
             print('Returning to the starting menu...')
             
-            f = open(('Characters/' + Name + '.txt'), mode = 'w')
-            for Attribute in Attributes:
-                f.write(str(Attribute) + '\n')
+            f = open(('Characters/' + name + '.txt'), mode = 'w')
+            for attribute in attributes:
+                f.write(str(attribute) + '\n')
             f.close
             
             time.sleep(3.0)
-            AttributesAccepted = True
-        elif Choice == 'yes':
-            Roll = Roll + 1
+            attributes_accepted = True
+        elif choice == 'yes':
+            roll = roll + 1
         else:
             print('That\'s not a valid choice, try again...')
             time.sleep(2)
             
    
-def ReadCharacter(Name):
-    f = open(('Characters/' + Name), mode = 'r')
-    Attributes = []
-    for Attribute in f.readlines():
-        Attributes.append(int(Attribute))
+def read_character(name):
+    f = open(('Characters/' + name), mode = 'r')
+    attributes = []
+    for attribute in f.readlines():
+        attributes.append(int(attribute))
    
-    Hero = Character(Name.split('.')[0], Attributes[0], Attributes[1], Attributes[2], Attributes[3])
+    hero = Character(name.split('.')[0], attributes[0], attributes[1], attributes[2], attributes[3])
     
-    return Hero
+    return hero
    
     
-def ChooseCharacter():
-    CharacterList = os.listdir('Characters')
+def choose_character():
+    character_list = os.listdir('Characters')
     os.system('clear')
     print('Choose your character:')
-    Index = 0
+    index = 0
     
-    for Character in CharacterList:
-        Index = Index + 1
-        print(str(Index) + '. ' + Character.split('.')[0])
+    for character in character_list:
+        index = index + 1
+        print(str(index) + '. ' + character.split('.')[0])
         
-    Index = Index + 1
-    print(str(Index) + '. Return')
+    index = index + 1
+    print(str(index) + '. Return')
     
-    ChoiceReceived = False
-    while ChoiceReceived == False:
-        Choice = int(input('Your choice (number): '))
-        if (Choice > 0) & (Choice < Index):
-            Character = ReadCharacter(CharacterList[Choice - 1])
-            ChoiceReceived = True
-        elif Choice == Index:
-            Character = 0
-            ChoiceReceived = True
+    choice_received = False
+    while choice_received == False:
+        choice = int(input('Your choice (number): '))
+        if (choice > 0) & (choice < index):
+            character = read_character(character_list[choice - 1])
+            choice_received = True
+        elif choice == index:
+            character = 0
+            choice_received = True
         else:
             print('That\'s not a valid choice, try again...')
             time.sleep(2)
             
-    return Character
+    return character
 
 
-def PrintOptions(Options):
-    for Option in Options:
-        print(Options[Option])
+def print_options(options):
+    for option in options:
+        print(options[option].split(':')[0])
 
 
-def StartingMenu():
-    Options = {'create': '- Create a character',
+def starting_menu():
+    options = {'create': '- Create a character',
                'start': '- Start an adventure',
                'exit': '- Exit'
                 }
     
-    ChoiceMade = False
-    while ChoiceMade == False:
+    choice_made = False
+    while choice_made == False:
         os.system('clear')
         print('Welcome, adventurer! Are you ready for your next challenge?')
         print('The world out there is full of monsters and treasures, and '\
               'they are both waiting for you!')
         print('Remember: Your choices always matter, so choose wisely.')
-        PrintOptions(Options)
+        print_options(options)
         
-        Choice = input('What would you like to do? (create/start/exit)\n')
-        if Choice == 'create':
+        choice = input('What would you like to do? (create/start/exit)\n')
+        if choice == 'create':
             os.system('clear')
-            CreateCharacter()
-        elif Choice == 'start':
+            create_character()
+        elif choice == 'start':
             if len(os.listdir('Characters')) > 0:
-                Character = ChooseCharacter()
-                if Character != 0:
-                    Adventure = ChooseAdventure()
-                    if Adventure != 0:
-                        ChoiceMade = True
+                character = choose_character()
+                if character != 0:
+                    adventure = choose_adventure()
+                    if adventure != 0:
+                        choice_made = True
             elif len(os.listdir('Characters')) == 0:
                 print('Looks like you have not created any characters yet, try doing that first')
                 time.sleep(2)
-        elif Choice == 'exit':
+        elif choice == 'exit':
             print('Very well, see you next time, adventurer!')
             time.sleep(2)
             sys.exit()
@@ -221,8 +219,41 @@ def StartingMenu():
             print('That\'s not a valid choice, try again...')
             time.sleep(2)
             
-            
-    return Character, Adventure
+    return character, adventure
             
 
-Character, Adventure = StartingMenu()
+def resolve_encounter(encounter):
+    os.system('clear')
+    print(encounter.description)
+    print_options(encounter.options)
+    commands = list(encounter.options.keys())
+    
+    
+    joined_commands = '(' + commands[0]
+    for command in commands[1:]:
+        joined_commands = joined_commands + '/' + command
+    joined_commands = joined_commands + ')'
+    
+    print('\n What would you like to do? ' + joined_commands)
+    choice_received = False
+    while choice_received == False:
+        choice = input('Your choice (number): ')
+        if (choice in commands):
+            choice_received = True
+        else:
+            print('That\'s not a valid choice, try again...')
+            time.sleep(2)
+    
+    next_encounter = encounter.options[choice].split(':')[1].strip('\n ')
+    
+    return next_encounter
+
+def main_game():
+    character, adventure = starting_menu()
+    exit_game = False
+    current_encounter = 'first_encounter'
+    while exit_game == False:
+        current_encounter = resolve_encounter(adventure[current_encounter])
+        
+        
+main_game()
