@@ -4,8 +4,8 @@ e dai o que aconteceu foi muito engraçado
 perdeu dois dedos do pe, e um da mao
 e voce vem me dizer, que nao sabia da situacao
 *options*
-1. fazer uma dancinha: encounter3
-2. pular pro ladinho: encounter2
+fazer uma dancinha: encounter3
+pular pro ladinho: encounter2
 *end*
 
 
@@ -13,8 +13,8 @@ e voce vem me dizer, que nao sabia da situacao
 *encounter*: encounter2
 esse aqui e o encounter 2
 *options*
-1. fazer uma dancinha: first_encounter
-2. pular pro ladinho: encounter3
+fazer uma dancinha: first_encounter
+pular pro ladinho: encounter3
 *end*
 
 
@@ -26,6 +26,6 @@ esse aqui e o encounter 2
 *encounter*:      encounter3
 esse aqui e o encounter 3
 *options*
-1. fazer uma dancinha: first_encounter
-2. pular pro ladinho: encounter2
+fazer uma dancinha: first_encounter
+pular pro ladinho: encounter2
 *end*
