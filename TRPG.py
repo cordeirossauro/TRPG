@@ -5,6 +5,10 @@ import time
 import sys
 import random
 
+os.chdir("Characters")
+import character_creator as cc
+os.chdir("..")
+
 class Menu:
     
     def __init__(self, text, options):
@@ -46,6 +50,7 @@ class Menu:
         
         return choice
                 
+    
 class Encounter:
     
     def __init__(self, name, description, options):
@@ -123,50 +128,6 @@ def choose_adventure():
         adventure = read_adventure(adventure_list[choice])
             
     return adventure
-
-
-def create_character(rolls = 3):
-    print('Welcome to the character creator! First things first, what\'s your hero\'s name?')
-    name = input()
-    
-    attributes_accepted = False
-    roll = 1
-    
-    while (attributes_accepted == False) & (roll <= rolls):
-        attributes = []
-        for index in range(0, 4):
-            print('Let\'s roll some dice and find out ' + name + '\'s attributes' + '.' * index, end = '\r')
-            attributes.append(random.randint(3, 10))
-            time.sleep(0.5)
-        
-        print('\nYour adventurer is ready! Their attributes are (from 3 to 10):')
-        print('- Stength: ' + str(attributes[0]))
-        print('- Agility: ' + str(attributes[1]))
-        print('- Intelligence: ' + str(attributes[2]))
-        print('- Charisma: ' + str(attributes[3]) + '\n')
-        
-        if roll < rolls:
-            choice = input('Would you like to roll again? You have ' + str(rolls - roll) + ' more chance(s) (yes/no) \n').lower()
-        elif roll == rolls:
-            print('You\'re out of chances')
-            choice = 'no'
-        
-        if choice == 'no':
-            print('Very well, your character was created!')
-            print('Returning to the starting menu...')
-            
-            f = open(('Characters/' + name + '.txt'), mode = 'w')
-            for attribute in attributes:
-                f.write(str(attribute) + '\n')
-            f.close
-            
-            time.sleep(3.0)
-            attributes_accepted = True
-        elif choice == 'yes':
-            roll = roll + 1
-        else:
-            print('That\'s not a valid choice, try again...')
-            time.sleep(2)
             
    
 def read_character(name):
@@ -219,7 +180,8 @@ def initialize_game():
 
     if choice == 'create':
         os.system('clear')
-        character = create_character()
+        character = cc.create_character(save_folder = 'Characters/')
+        initialize_game()
     elif choice == 'start':
         if len(os.listdir('Characters')) > 0:
             character = choose_character()
