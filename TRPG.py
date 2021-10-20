@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 
+from rich.console import Console
+from rich.panel import Panel
 import os
 import time
 import sys
-import random
 
-
-os.chdir("Characters")
-
+sys.path.append('Characters')
 try:
     import character_creator as cc
 except ModuleNotFoundError:
@@ -15,45 +14,43 @@ except ModuleNotFoundError:
     time.sleep(2)
     sys.exit()
 
-os.chdir("..")
-
 
 class Menu:
     def __init__(self, text, options):
         self.text = text
         self.options = options
 
-    def print_menu(self, numbered_choices=False):
-        print(self.text)
+    def print_menu(self, console, numbered_choices=False):
+        console.print(Panel(self.text, expand = False))
         for option in self.options:
             if numbered_choices is True:
-                print(str(int(option) + 1) + ". " + self.options[option].split(":")[0])
+                console.print(str(int(option) + 1) + ". " + self.options[option].split(":")[0])
             else:
-                print("- " + self.options[option].split(":")[0])
+                console.print("- " + self.options[option].split(":")[0])
 
-    def choice(self, numbered_choices=False):
-
+    def choice(self, console, numbered_choices=False):
+        console.print('\n')
         if numbered_choices is True:
-            print("What would you like to do? (Choose a number)")
+            console.print("What would you like to do? (Choose a number)")
         else:
             joined_options = "("
             for option in self.options:
                 joined_options = joined_options + "/" + option
             joined_options = joined_options + ")"
             joined_options = joined_options.replace("(/", "(")
-            print("What would you like to do? " + joined_options)
+            console.print("What would you like to do? " + joined_options)
 
         choice_received = False
         while choice_received is False:
 
-            choice = input("Your choice: ")
+            choice = console.input("Your choice: ")
             if numbered_choices is True:
                 choice = int(choice) - 1
 
             if choice in self.options:
                 choice_received = True
             else:
-                print("That's not a valid choice, try again...")
+                console.print("That's not a valid choice, try again...")
                 time.sleep(1.0)
 
         return choice
@@ -64,10 +61,10 @@ class Encounter(Menu):
         self.name = name
         Menu.__init__(self, text, options)
         
-    def resolve_encounter(self):
+    def resolve_encounter(self, console):
         os.system("clear")
-        self.print_menu(numbered_choices=True)
-        choice = self.choice(numbered_choices=True)
+        self.print_menu(console, numbered_choices=True)
+        choice = self.choice(console, numbered_choices=True)
     
         next_encounter = self.options[choice].split(":")[1].strip("\n ")
 
@@ -103,6 +100,7 @@ def read_adventure(adventure_file):
                     description = description + line
                 else:
                     description_finished = True
+                    description = description[:-1]
 
             options = []
             options_finished = False
@@ -125,19 +123,19 @@ def read_adventure(adventure_file):
     return encounters
 
 
-def choose_adventure():
+def choose_adventure(console):
     adventure_list = [f for f in os.listdir("Adventures") if 
                       f.endswith('txt')]
-    text = "\nWhich adventure are you taking today?"
+    text = "Which adventure are you taking today?"
     options = dict(enumerate(adventure_list))
     options[len(adventure_list)] = "Return"
 
     adventure_menu = Menu(text, options)
-    adventure_menu.print_menu(numbered_choices=True)
-    choice = adventure_menu.choice(numbered_choices=True)
+    adventure_menu.print_menu(console, numbered_choices=True)
+    choice = adventure_menu.choice(console, numbered_choices=True)
 
     if choice == (len(adventure_list)):
-        initialize_game()
+        initialize_game(console)
     else:
         adventure = read_adventure(adventure_list[choice])
 
@@ -157,7 +155,7 @@ def read_character(name):
     return hero
 
 
-def choose_character():
+def choose_character(console):
     character_list = [f for f in os.listdir("Characters") if f.endswith('txt')]
     os.system("clear")
     text = "Choose your character:"
@@ -165,20 +163,20 @@ def choose_character():
     options[len(character_list)] = "Return"
 
     character_menu = Menu(text, options)
-    character_menu.print_menu(numbered_choices=True)
-    choice = character_menu.choice(numbered_choices=True)
+    character_menu.print_menu(console, numbered_choices=True)
+    choice = character_menu.choice(console, numbered_choices=True)
 
     if choice == (len(character_list)):
-        initialize_game()
+        initialize_game(console)
     else:
         character = read_character(character_list[choice])
 
     return character
 
 
-def initialize_game():
+def initialize_game(console):
     text = (
-        "Welcome, adventurer! Are you ready for your next challenge?\n"
+        "[bold red]Welcome, adventurer! Are you ready for your next challenge?\n"
         "The world out there is full of monsters and treasures, and "
         "they are both waiting for you!\n"
         "Remember: Your choices always matter, so choose wisely."
@@ -193,24 +191,25 @@ def initialize_game():
     os.system("clear")
 
     starting_menu = Menu(text, options)
-    starting_menu.print_menu()
-    choice = starting_menu.choice()
+    starting_menu.print_menu(console)
+    choice = starting_menu.choice(console)
 
     if choice == "create":
         os.system("clear")
         character = cc.create_character(save_folder="Characters/")
-        initialize_game()
+        initialize_game(console)
     elif choice == "start":
         if len(os.listdir("Characters")) > 0:
-            character = choose_character()
-            adventure = choose_adventure()
+            character = choose_character(console)
+            console.print('\n')
+            adventure = choose_adventure(console)
         elif len(os.listdir("Characters")) == 0:
             print(
                 "Looks like you have not created any characters yet,"
                 " try doing that first"
             )
             time.sleep(2)
-            initialize_game()
+            initialize_game(console)
     elif choice == "exit":
         print("Very well, see you next time, adventurer!")
         time.sleep(2)
@@ -220,11 +219,12 @@ def initialize_game():
 
 
 def main_game():
-    character, adventure = initialize_game()
+    console = Console()
+    character, adventure = initialize_game(console)
     exit_game = False
     current_encounter = "first_encounter"
     while exit_game is False:
-        current_encounter = adventure[current_encounter].resolve_encounter()
+        current_encounter = adventure[current_encounter].resolve_encounter(console)
 
 
 main_game()
