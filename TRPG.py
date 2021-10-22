@@ -6,7 +6,7 @@ import os
 import time
 import sys
 
-sys.path.append('Characters')
+sys.path.append("Characters")
 try:
     import character_creator as cc
 except ModuleNotFoundError:
@@ -21,36 +21,38 @@ class Menu:
         self.options = options
 
     def print_menu(self, console, numbered_choices=False):
-        console.print(Panel(self.text, expand = False))
+        console.print(Panel(self.text, expand=False))
         for option in self.options:
             if numbered_choices is True:
-                console.print(str(int(option) + 1) + ". " + self.options[option].split(":")[0])
+                console.print(
+                    str(int(option) + 1) + ". " + self.options[option].split(":")[0]
+                )
             else:
                 console.print("- " + self.options[option].split(":")[0])
 
     def choice(self, console, numbered_choices=False):
-        console.print('\n')
+        console.print("\n")
         if numbered_choices is True:
-            console.print("What would you like to do? (Choose a number)")
+            console.print(" What would you like to do? (Choose a number)")
         else:
             joined_options = "("
             for option in self.options:
                 joined_options = joined_options + "/" + option
             joined_options = joined_options + ")"
             joined_options = joined_options.replace("(/", "(")
-            console.print("What would you like to do? " + joined_options)
+            console.print(" What would you like to do? " + joined_options)
 
         choice_received = False
         while choice_received is False:
 
-            choice = console.input("Your choice: ")
+            choice = console.input(" Your choice: ")
             if numbered_choices is True:
                 choice = int(choice) - 1
 
             if choice in self.options:
                 choice_received = True
             else:
-                console.print("That's not a valid choice, try again...")
+                console.print(" That's not a valid choice, try again...")
                 time.sleep(1.0)
 
         return choice
@@ -60,12 +62,12 @@ class Encounter(Menu):
     def __init__(self, name, text, options):
         self.name = name
         Menu.__init__(self, text, options)
-        
+
     def resolve_encounter(self, console):
         os.system("clear")
         self.print_menu(console, numbered_choices=True)
         choice = self.choice(console, numbered_choices=True)
-    
+
         next_encounter = self.options[choice].split(":")[1].strip("\n ")
 
         return next_encounter
@@ -111,7 +113,7 @@ def read_adventure(adventure_file):
                     options.append(line)
                 else:
                     options_finished = True
-            
+
             options = dict(enumerate(options))
             encounters[name] = Encounter(name, description, options)
 
@@ -124,8 +126,7 @@ def read_adventure(adventure_file):
 
 
 def choose_adventure(console):
-    adventure_list = [f for f in os.listdir("Adventures") if 
-                      f.endswith('txt')]
+    adventure_list = [f for f in os.listdir("Adventures") if f.endswith("txt")]
     text = "Which adventure are you taking today?"
     options = dict(enumerate(adventure_list))
     options[len(adventure_list)] = "Return"
@@ -156,7 +157,7 @@ def read_character(name):
 
 
 def choose_character(console):
-    character_list = [f for f in os.listdir("Characters") if f.endswith('txt')]
+    character_list = [f for f in os.listdir("Characters") if f.endswith("txt")]
     os.system("clear")
     text = "Choose your character:"
     options = dict(enumerate(character_list))
@@ -201,7 +202,7 @@ def initialize_game(console):
     elif choice == "start":
         if len(os.listdir("Characters")) > 0:
             character = choose_character(console)
-            console.print('\n')
+            console.print("\n")
             adventure = choose_adventure(console)
         elif len(os.listdir("Characters")) == 0:
             print(
