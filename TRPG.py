@@ -24,7 +24,7 @@ class Menu:
         self.options = options
 
     def print_menu(self, console, numbered_choices=False):
-        console.print(Panel(self.text, width = 64))
+        console.print(Panel(self.text, width=64))
         for option in self.options:
             if numbered_choices is True:
                 console.print(
@@ -88,35 +88,52 @@ class Character:
     def attack(self, enemy, battle_log, console, turn):
         roll = random.randint(1, 6) + random.randint(1, 6) + self.strength
         if (roll) > enemy.defense:
-            console.print(' ' + self.name + '\'s attacking roll: ' +
-                          str(roll) + ' (success)')
+            console.print(
+                " " + self.name + "'s attacking roll: " + str(roll) + " (success)"
+            )
             damage = self.strength
             enemy.hp = enemy.hp - damage
-            battle_log.append('Turn ' + str(turn) + ': ' + self.name + ' attacked ' +
-                              enemy.name + ' for ' + str(damage) + ' damage.\n')
+            battle_log.append(
+                "Turn "
+                + str(turn)
+                + ": "
+                + self.name
+                + " attacked "
+                + enemy.name
+                + " for "
+                + str(damage)
+                + " damage.\n"
+            )
         else:
-            console.print(' ' + self.name + '\'s attacking roll: ' + str(roll) +
-                          ' (fail)')
-            battle_log.append('Turn ' + str(turn) + ': ' + self.name + ' attacked ' +
-                              enemy.name + ' but couldn\'t hit. \n')
+            console.print(
+                " " + self.name + "'s attacking roll: " + str(roll) + " (fail)"
+            )
+            battle_log.append(
+                "Turn "
+                + str(turn)
+                + ": "
+                + self.name
+                + " attacked "
+                + enemy.name
+                + " but couldn't hit. \n"
+            )
 
 
 class Battle(Menu):
-
     def __init__(self, character, enemy):
         self.character = character
         self.enemy = enemy
         self.battle_log = []
-        Menu.__init__(self, '', {'attack':'Attack your enemy', 'flee': 'Try to flee'})
+        Menu.__init__(self, "", {"attack": "Attack your enemy", "flee": "Try to flee"})
 
     def make_sheet(self, character):
         sheet = Text()
-        sheet.append(Text('- Strength:             ' + str(character.strength)))
-        sheet.append(Text('\n- Agility:              ' + str(character.agility)))
-        sheet.append(Text('\n- Intelligence:         ' + str(character.intelligence)))
-        sheet.append(Text('\n- Charisma:             ' + str(character.charisma)))
-        sheet.append(Text('\n- HP:                   ' + str(character.hp)))
-        sheet.append(Text('\n- Defense:              ' + str(character.defense)))
+        sheet.append(Text("- Strength:             " + str(character.strength)))
+        sheet.append(Text("\n- Agility:              " + str(character.agility)))
+        sheet.append(Text("\n- Intelligence:         " + str(character.intelligence)))
+        sheet.append(Text("\n- Charisma:             " + str(character.charisma)))
+        sheet.append(Text("\n- HP:                   " + str(character.hp)))
+        sheet.append(Text("\n- Defense:              " + str(character.defense)))
 
         return sheet
 
@@ -124,12 +141,19 @@ class Battle(Menu):
         character_sheet = self.make_sheet(self.character)
         enemy_sheet = self.make_sheet(self.enemy)
 
-        columns = Columns([Panel(character_sheet, title = self.character.name),
-                           Panel(enemy_sheet, title = self.enemy.name)], width = 30)
+        columns = Columns(
+            [
+                Panel(character_sheet, title=self.character.name),
+                Panel(enemy_sheet, title=self.enemy.name),
+            ],
+            width=30,
+        )
 
-        console.print(Panel(Text('Battle', justify = 'center'), width = 62))
+        console.print(Panel(Text("Battle", justify="center"), width=62))
         console.print(columns)
-        console.print(Panel(''.join(self.battle_log[-6:]), title = 'Battle Log', width = 62, height = 8))
+        console.print(
+            Panel("".join(self.battle_log[-6:]), title="Battle Log", width=62, height=8)
+        )
 
     def roll_initiative(self):
         draw = True
@@ -147,7 +171,7 @@ class Battle(Menu):
                 draw = False
                 enemy_won_roll = True
 
-        self.battle_log.append(winner + ' takes the initiative... \n')
+        self.battle_log.append(winner + " takes the initiative... \n")
         return enemy_won_roll
 
     def resolve_battle(self, console):
@@ -160,8 +184,8 @@ class Battle(Menu):
             turn = turn + 1
             self.print_details(console)
             choice = self.choice(console)
-            console.print('')
-            if choice == 'attack':
+            console.print("")
+            if choice == "attack":
                 if enemy_won_roll is True:
                     self.enemy.attack(self.character, self.battle_log, console, turn)
                     time.sleep(1.0)
@@ -173,24 +197,28 @@ class Battle(Menu):
                     self.enemy.attack(self.character, self.battle_log, console, turn)
                     time.sleep(1.5)
 
-            elif choice == 'flee':
+            elif choice == "flee":
                 battle_finished = True
 
             if self.enemy.hp <= 0:
                 os.system("clear")
                 self.print_details(console)
-                console.print('[bold yellow]\n You won the battle! Your enemy '\
-                              'lays dead before you...')
-                input(' Press Enter to continue...')
+                console.print(
+                    "[bold yellow]\n You won the battle! Your enemy "
+                    "lays dead before you..."
+                )
+                input(" Press Enter to continue...")
                 battle_finished = True
                 game_over = False
             elif self.character.hp <= 0:
                 os.system("clear")
                 self.print_details(console)
-                console.print('[bold red]\n Even with all your might, this enemy '\
-                              'proved too powerful for you.\n Your adventure '\
-                              'ends here...')
-                input(' Press Enter to continue...')
+                console.print(
+                    "[bold red]\n Even with all your might, this enemy "
+                    "proved too powerful for you.\n Your adventure "
+                    "ends here..."
+                )
+                input(" Press Enter to continue...")
                 battle_finished = True
                 game_over = True
 
@@ -198,7 +226,7 @@ class Battle(Menu):
 
 
 def read_adventure(adventure_file):
-    f = open(("Adventures/" + adventure_file + '.txt'), mode="r")
+    f = open(("Adventures/" + adventure_file + ".txt"), mode="r")
     lines = f.readlines()
     encounters = {}
 
@@ -241,8 +269,10 @@ def read_adventure(adventure_file):
 
 
 def choose_adventure(console):
-    adventure_list = [f.split('.')[0] for f in os.listdir("Adventures") if f.endswith("txt")]
-    text = Text("Which adventure are you taking today?", justify = 'center')
+    adventure_list = [
+        f.split(".")[0] for f in os.listdir("Adventures") if f.endswith("txt")
+    ]
+    text = Text("Which adventure are you taking today?", justify="center")
     options = dict(enumerate(adventure_list))
     options[len(adventure_list)] = "Return"
 
@@ -259,23 +289,30 @@ def choose_adventure(console):
 
 
 def read_character(name):
-    f = open(("Characters/" + name + '.txt'), mode="r")
+    f = open(("Characters/" + name + ".txt"), mode="r")
     attributes = []
     for attribute in f.readlines():
         attributes.append(int(attribute))
 
     hero = Character(
-        name.split(".")[0], attributes[0], attributes[1],
-        attributes[2], attributes[3], attributes[4], attributes[5]
+        name.split(".")[0],
+        attributes[0],
+        attributes[1],
+        attributes[2],
+        attributes[3],
+        attributes[4],
+        attributes[5],
     )
 
     return hero
 
 
 def choose_character(console):
-    character_list = [f.split('.')[0] for f in os.listdir("Characters") if f.endswith("txt")]
+    character_list = [
+        f.split(".")[0] for f in os.listdir("Characters") if f.endswith("txt")
+    ]
     os.system("clear")
-    text = Text("Choose your character:", justify='center')
+    text = Text("Choose your character:", justify="center")
     options = dict(enumerate(character_list))
 
     character_menu = Menu(text, options)
@@ -342,8 +379,8 @@ def main_game():
 
 main_game()
 
-#console = Console()
-#character, adventure = initialize_game(console)
-#goblin = read_character('goblin.txt')
-#battle = Battle(character, goblin)
-#game_over = battle.resolve_battle(console)
+# console = Console()
+# character, adventure = initialize_game(console)
+# goblin = read_character('goblin.txt')
+# battle = Battle(character, goblin)
+# game_over = battle.resolve_battle(console)
