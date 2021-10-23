@@ -2,6 +2,8 @@
 
 from rich.console import Console
 from rich.panel import Panel
+from rich.text import Text
+from rich.columns import Columns
 import os
 import time
 import sys
@@ -31,16 +33,15 @@ class Menu:
                 console.print("- " + self.options[option].split(":")[0])
 
     def choice(self, console, numbered_choices=False):
-        console.print("\n")
         if numbered_choices is True:
-            console.print(" What would you like to do? (Choose a number)")
+            console.print("\n What would you like to do? (Choose a number)")
         else:
             joined_options = "("
             for option in self.options:
                 joined_options = joined_options + "/" + option
             joined_options = joined_options + ")"
             joined_options = joined_options.replace("(/", "(")
-            console.print(" What would you like to do? " + joined_options)
+            console.print("\n What would you like to do? " + joined_options)
 
         choice_received = False
         while choice_received is False:
@@ -74,12 +75,64 @@ class Encounter(Menu):
 
 
 class Character:
-    def __init__(self, name, stength, agility, intelligence, charisma):
+    def __init__(self, name, strength, agility, intelligence, charisma, hp):
         self.name = name
-        self.stength = stength
+        self.strength = strength
         self.agility = agility
         self.intelligence = intelligence
         self.charisma = charisma
+        self.hp = hp
+
+
+class Battle(Menu):
+
+    def __init__(self, character, enemy):
+        self.character = character
+        self.enemy = enemy
+        self.battle_log = Text()
+        Menu.__init__(self, '', {'attack':'Attack your enemy', 'flee': 'Try to flee'})
+
+    def make_sheet(self, character):
+        sheet = Text()
+        sheet.append(Text('- Strength:             ' + str(character.strength)))
+        sheet.append(Text('\n- Agility:              ' + str(character.agility)))
+        sheet.append(Text('\n- Intelligence:         ' + str(character.intelligence)))
+        sheet.append(Text('\n- Charisma:             ' + str(character.charisma)))
+        sheet.append(Text('\n- HP:                   ' + str(character.hp)))
+
+        return sheet
+
+    def print_details(self, console):
+        character_sheet = self.make_sheet(self.character)
+        enemy_sheet = self.make_sheet(self.enemy)
+
+        columns = Columns([Panel(character_sheet, title = self.character.name),
+                           Panel(enemy_sheet, title = self.enemy.name)], width = 30)
+
+        console.print(Panel(Text('Battle', justify = 'center'), width = 62))
+        console.print(columns)
+        console.print(Panel(self.battle_log[:-1], title = 'Battle Log', width = 62))
+
+    def resolve_battle(self, console):
+        battle_finished = False
+
+        while battle_finished is False:
+            os.system("clear")
+            self.print_details(console)
+            choice = self.choice(console)
+
+            if choice == 'attack':
+                damage = self.character.strength
+                self.enemy.hp = self.enemy.hp - damage
+                self.battle_log.append(self.character.name + ' attacked ' +
+                                       self.enemy.name + ' for ' + str(damage) +
+                                       ' damage.\n')
+                if self.enemy.hp <= 0:
+                    console.print('You won!')
+                    battle_finished = True
+
+            elif choice == 'flee':
+                battle_finished = True
 
 
 def read_adventure(adventure_file):
@@ -150,7 +203,8 @@ def read_character(name):
         attributes.append(int(attribute))
 
     hero = Character(
-        name.split(".")[0], attributes[0], attributes[1], attributes[2], attributes[3]
+        name.split(".")[0], attributes[0], attributes[1],
+        attributes[2], attributes[3], attributes[4]
     )
 
     return hero
