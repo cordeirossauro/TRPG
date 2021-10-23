@@ -27,13 +27,15 @@ def create_character(rolls=3, save_folder=""):
             time.sleep(0.5)
 
         attributes.append(attributes[0] * 10)
+        attributes.append(max(attributes[0:2]) + 5)
 
         print("\nYour adventurer is ready! Their attributes are (from 3 to 10):")
         print("- Stength: " + str(attributes[0]))
         print("- Agility: " + str(attributes[1]))
         print("- Intelligence: " + str(attributes[2]))
         print("- Charisma: " + str(attributes[3]) + "\n")
-        print("- HP (Strength * 10): " + str(attributes[4]) + "\n")
+        print("- HP (Strength * 10): " + str(attributes[4]))
+        print("- Defense (max(str/agi) + 5): " + str(attributes[5]) + "\n")
 
         if roll < rolls:
             choice = input(
