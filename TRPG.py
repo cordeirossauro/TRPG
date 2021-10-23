@@ -65,12 +65,24 @@ class Encounter(Menu):
         self.name = name
         Menu.__init__(self, text, options)
 
-    def resolve_encounter(self, console):
+    def resolve_encounter(self, character, console):
         os.system("clear")
         self.print_menu(console, numbered_choices=True)
         choice = self.choice(console, numbered_choices=True)
 
-        next_encounter = self.options[choice].split(":")[1].strip("\n ")
+        result = self.options[choice].split(":")[1]
+        if len(result.split(",")) == 1:
+            next_encounter = result.strip("\n ")
+        else:
+            enemy = read_character(result.split(",")[0].strip(" "))
+
+            battle = Battle(character, enemy)
+            game_over = battle.resolve_battle(console)
+            if game_over is True:
+                next_encounter = 0
+            else:
+                next_encounter = result.split(",")[1].strip("\n ")
+                del self.options[choice]
 
         return next_encounter
 
@@ -372,15 +384,11 @@ def main_game():
     console = Console()
     character, adventure = initialize_game(console)
     exit_game = False
-    current_encounter = "first_encounter"
+    next_encounter = "first_encounter"
     while exit_game is False:
-        current_encounter = adventure[current_encounter].resolve_encounter(console)
+        next_encounter = adventure[next_encounter].resolve_encounter(character, console)
+        if next_encounter == 0:
+            exit_game = True
 
 
 main_game()
-
-# console = Console()
-# character, adventure = initialize_game(console)
-# goblin = read_character('goblin.txt')
-# battle = Battle(character, goblin)
-# game_over = battle.resolve_battle(console)

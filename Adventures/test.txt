@@ -3,7 +3,7 @@ this is the first encounter
 *options*
 first option (should take you to the third encounter): encounter3
 second option (should take you to the second encounter): encounter2
-third option (should take you back here): first_encounter
+third option (should take you back here, after a battle): goblin,first_encounter
 *end*
 
 
@@ -23,5 +23,5 @@ this is encounter number 3, very good!
 did the game print a blank line above this? if so, all is going good
 *options*
 first option (goes back to the first encounter, i hope): first_encounter
-second options (goes to the second encounter, apparently): encounter2
+second option (goes to the second encounter, apparently): encounter2
 *end*
