@@ -24,7 +24,7 @@ class Menu:
         self.options = options
 
     def print_menu(self, console, numbered_choices=False):
-        console.print(Panel(self.text, expand=False))
+        console.print(Panel(self.text, width = 64))
         for option in self.options:
             if numbered_choices is True:
                 console.print(
@@ -198,7 +198,7 @@ class Battle(Menu):
 
 
 def read_adventure(adventure_file):
-    f = open(("Adventures/" + adventure_file), mode="r")
+    f = open(("Adventures/" + adventure_file + '.txt'), mode="r")
     lines = f.readlines()
     encounters = {}
 
@@ -241,8 +241,8 @@ def read_adventure(adventure_file):
 
 
 def choose_adventure(console):
-    adventure_list = [f for f in os.listdir("Adventures") if f.endswith("txt")]
-    text = "Which adventure are you taking today?"
+    adventure_list = [f.split('.')[0] for f in os.listdir("Adventures") if f.endswith("txt")]
+    text = Text("Which adventure are you taking today?", justify = 'center')
     options = dict(enumerate(adventure_list))
     options[len(adventure_list)] = "Return"
 
@@ -259,7 +259,7 @@ def choose_adventure(console):
 
 
 def read_character(name):
-    f = open(("Characters/" + name), mode="r")
+    f = open(("Characters/" + name + '.txt'), mode="r")
     attributes = []
     for attribute in f.readlines():
         attributes.append(int(attribute))
@@ -273,20 +273,16 @@ def read_character(name):
 
 
 def choose_character(console):
-    character_list = [f for f in os.listdir("Characters") if f.endswith("txt")]
+    character_list = [f.split('.')[0] for f in os.listdir("Characters") if f.endswith("txt")]
     os.system("clear")
-    text = "Choose your character:"
+    text = Text("Choose your character:", justify='center')
     options = dict(enumerate(character_list))
-    options[len(character_list)] = "Return"
 
     character_menu = Menu(text, options)
     character_menu.print_menu(console, numbered_choices=True)
     choice = character_menu.choice(console, numbered_choices=True)
 
-    if choice == (len(character_list)):
-        character, adventure = initialize_game(console)
-    else:
-        character = read_character(character_list[choice])
+    character = read_character(character_list[choice])
 
     return character
 
@@ -294,7 +290,7 @@ def choose_character(console):
 def initialize_game(console):
     text = (
         "[bold red]Welcome, adventurer! Are you ready for your next challenge?\n"
-        "The world out there is full of monsters and treasures, and "
+        "The world out there is full of monsters and treasures, and\n"
         "they are both waiting for you!\n"
         "Remember: Your choices always matter, so choose wisely."
     )
@@ -344,10 +340,10 @@ def main_game():
         current_encounter = adventure[current_encounter].resolve_encounter(console)
 
 
-#main_game()
+main_game()
 
-console = Console()
-character, adventure = initialize_game(console)
-goblin = read_character('goblin.txt')
-battle = Battle(character, goblin)
-game_over = battle.resolve_battle(console)
+#console = Console()
+#character, adventure = initialize_game(console)
+#goblin = read_character('goblin.txt')
+#battle = Battle(character, goblin)
+#game_over = battle.resolve_battle(console)
