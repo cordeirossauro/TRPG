@@ -5,12 +5,13 @@ General Menus                         |Battle System
 
 Simple Python text-based RPG that can be played on the terminal. New adventures are very easily added to the ones already
 existent (through a simple .txt), and all characters are persistent and created directly from the terminal.
-# Already Done
-- Starting menu is totally finished and usable;
-- Function to read character sheets and adventures from the respective folder is totally finished;
-- Main game "skeleton" function created;
 
-# To do
-- Improve main game function
-- Add monsters and combat
-- Much more...
+# How to play
+First, download the source files as a ZIP using the option on the Code tab above. After doing that, extract all files and use the terminal to navigate to the TRPG folder in your system. Before running the game, install all the requirements with the command (only necessary the first time):
+```
+$ pip3 install -r requirements.txt
+```
+When all the requirements are installed, the command to run the game is:
+```
+$ python3 TRPG.py
+```
