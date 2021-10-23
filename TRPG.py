@@ -5,6 +5,7 @@ from rich.panel import Panel
 from rich.text import Text
 from rich.columns import Columns
 import os
+import random
 import time
 import sys
 
@@ -75,13 +76,29 @@ class Encounter(Menu):
 
 
 class Character:
-    def __init__(self, name, strength, agility, intelligence, charisma, hp):
+    def __init__(self, name, strength, agility, intelligence, charisma, hp, defense):
         self.name = name
         self.strength = strength
         self.agility = agility
         self.intelligence = intelligence
         self.charisma = charisma
         self.hp = hp
+        self.defense = defense
+
+    def attack(self, enemy, battle_log, console, turn):
+        roll = random.randint(1, 6) + random.randint(1, 6) + self.strength
+        if (roll) > enemy.defense:
+            console.print(' ' + self.name + '\'s attacking roll: ' +
+                          str(roll) + ' (success)')
+            damage = self.strength
+            enemy.hp = enemy.hp - damage
+            battle_log.append('Turn ' + str(turn) + ': ' + self.name + ' attacked ' +
+                              enemy.name + ' for ' + str(damage) + ' damage.\n')
+        else:
+            console.print(' ' + self.name + '\'s attacking roll: ' + str(roll) +
+                          ' (fail)')
+            battle_log.append('Turn ' + str(turn) + ': ' + self.name + ' attacked ' +
+                              enemy.name + ' but couldn\'t hit. \n')
 
 
 class Battle(Menu):
@@ -89,7 +106,7 @@ class Battle(Menu):
     def __init__(self, character, enemy):
         self.character = character
         self.enemy = enemy
-        self.battle_log = Text()
+        self.battle_log = []
         Menu.__init__(self, '', {'attack':'Attack your enemy', 'flee': 'Try to flee'})
 
     def make_sheet(self, character):
@@ -99,6 +116,7 @@ class Battle(Menu):
         sheet.append(Text('\n- Intelligence:         ' + str(character.intelligence)))
         sheet.append(Text('\n- Charisma:             ' + str(character.charisma)))
         sheet.append(Text('\n- HP:                   ' + str(character.hp)))
+        sheet.append(Text('\n- Defense:              ' + str(character.defense)))
 
         return sheet
 
@@ -111,28 +129,72 @@ class Battle(Menu):
 
         console.print(Panel(Text('Battle', justify = 'center'), width = 62))
         console.print(columns)
-        console.print(Panel(self.battle_log[:-1], title = 'Battle Log', width = 62))
+        console.print(Panel(''.join(self.battle_log[-6:]), title = 'Battle Log', width = 62, height = 8))
+
+    def roll_initiative(self):
+        draw = True
+
+        while draw is True:
+            character_initiative = random.randint(1, 6) + self.character.agility
+            enemy_initiative = random.randint(1, 6) + self.enemy.agility
+
+            if character_initiative > enemy_initiative:
+                winner = self.character.name
+                draw = False
+                enemy_won_roll = False
+            elif character_initiative < enemy_initiative:
+                winner = self.enemy.name
+                draw = False
+                enemy_won_roll = True
+
+        self.battle_log.append(winner + ' takes the initiative... \n')
+        return enemy_won_roll
 
     def resolve_battle(self, console):
         battle_finished = False
+        enemy_won_roll = self.roll_initiative()
+        turn = 0
 
         while battle_finished is False:
             os.system("clear")
+            turn = turn + 1
             self.print_details(console)
             choice = self.choice(console)
-
+            console.print('')
             if choice == 'attack':
-                damage = self.character.strength
-                self.enemy.hp = self.enemy.hp - damage
-                self.battle_log.append(self.character.name + ' attacked ' +
-                                       self.enemy.name + ' for ' + str(damage) +
-                                       ' damage.\n')
-                if self.enemy.hp <= 0:
-                    console.print('You won!')
-                    battle_finished = True
+                if enemy_won_roll is True:
+                    self.enemy.attack(self.character, self.battle_log, console, turn)
+                    time.sleep(1.0)
+                    self.character.attack(self.enemy, self.battle_log, console, turn)
+                    time.sleep(1.5)
+                else:
+                    self.character.attack(self.enemy, self.battle_log, console, turn)
+                    time.sleep(1.0)
+                    self.enemy.attack(self.character, self.battle_log, console, turn)
+                    time.sleep(1.5)
 
             elif choice == 'flee':
                 battle_finished = True
+
+            if self.enemy.hp <= 0:
+                os.system("clear")
+                self.print_details(console)
+                console.print('[bold yellow]\n You won the battle! Your enemy '\
+                              'lays dead before you...')
+                input(' Press Enter to continue...')
+                battle_finished = True
+                game_over = False
+            elif self.character.hp <= 0:
+                os.system("clear")
+                self.print_details(console)
+                console.print('[bold red]\n Even with all your might, this enemy '\
+                              'proved too powerful for you.\n Your adventure '\
+                              'ends here...')
+                input(' Press Enter to continue...')
+                battle_finished = True
+                game_over = True
+
+        return game_over
 
 
 def read_adventure(adventure_file):
@@ -189,7 +251,7 @@ def choose_adventure(console):
     choice = adventure_menu.choice(console, numbered_choices=True)
 
     if choice == (len(adventure_list)):
-        initialize_game(console)
+        character, adventure = initialize_game(console)
     else:
         adventure = read_adventure(adventure_list[choice])
 
@@ -204,7 +266,7 @@ def read_character(name):
 
     hero = Character(
         name.split(".")[0], attributes[0], attributes[1],
-        attributes[2], attributes[3], attributes[4]
+        attributes[2], attributes[3], attributes[4], attributes[5]
     )
 
     return hero
@@ -222,7 +284,7 @@ def choose_character(console):
     choice = character_menu.choice(console, numbered_choices=True)
 
     if choice == (len(character_list)):
-        initialize_game(console)
+        character, adventure = initialize_game(console)
     else:
         character = read_character(character_list[choice])
 
@@ -282,4 +344,10 @@ def main_game():
         current_encounter = adventure[current_encounter].resolve_encounter(console)
 
 
-main_game()
+#main_game()
+
+console = Console()
+character, adventure = initialize_game(console)
+goblin = read_character('goblin.txt')
+battle = Battle(character, goblin)
+game_over = battle.resolve_battle(console)
