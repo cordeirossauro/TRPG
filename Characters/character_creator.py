@@ -13,7 +13,7 @@ def create_character(rolls=3, save_folder=""):
     attributes_accepted = False
     roll = 1
 
-    while (attributes_accepted == False) & (roll <= rolls):
+    while (attributes_accepted is False) & (roll <= rolls):
         attributes = []
         for index in range(0, 4):
             print(

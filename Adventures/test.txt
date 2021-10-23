@@ -1,4 +1,4 @@
-*encounter*: first_encounter  
+*encounter*: first_encounter
 this is the first encounter
 *options*
 first option (should take you to the third encounter): encounter3
