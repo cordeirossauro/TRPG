@@ -8,6 +8,7 @@ import os
 import random
 import time
 import sys
+import json
 
 sys.path.append("Characters")
 try:
@@ -101,7 +102,11 @@ class Character:
         roll = random.randint(1, 6) + random.randint(1, 6) + self.strength
         if (roll) > enemy.defense:
             console.print(
-                " " + self.name + "'s attacking roll: " + str(roll) + " (success)"
+                " "
+                + self.name
+                + "'s attacking roll: "
+                + str(roll)
+                + "[bold green] (success)"
             )
             damage = self.strength
             enemy.hp = enemy.hp - damage
@@ -118,7 +123,11 @@ class Character:
             )
         else:
             console.print(
-                " " + self.name + "'s attacking roll: " + str(roll) + " (fail)"
+                " "
+                + self.name
+                + "'s attacking roll: "
+                + str(roll)
+                + "[bold red] (fail)"
             )
             battle_log.append(
                 "Turn "
@@ -301,29 +310,25 @@ def choose_adventure(console):
 
 
 def read_character(name):
-    f = open(("Characters/" + name + ".txt"), mode="r")
-    attributes = []
-    for attribute in f.readlines():
-        attributes.append(int(attribute))
+    f = open(("Characters/" + name + ".json"), mode="r")
+    attributes = json.load(f)
 
-    hero = Character(
-        name.split(".")[0],
-        attributes[0],
-        attributes[1],
-        attributes[2],
-        attributes[3],
-        attributes[4],
-        attributes[5],
+    character = Character(
+        attributes["name"],
+        attributes["strength"],
+        attributes["agility"],
+        attributes["intelligence"],
+        attributes["charisma"],
+        attributes["hp"],
+        attributes["defense"],
     )
 
-    return hero
+    return character
 
 
-def choose_character(console):
-    character_list = [
-        f.split(".")[0] for f in os.listdir("Characters") if f.endswith("txt")
-    ]
+def choose_character(console, character_list):
     os.system("clear")
+
     text = Text("Choose your character:", justify="center")
     options = dict(enumerate(character_list))
 
@@ -359,19 +364,22 @@ def initialize_game(console):
     if choice == "create":
         os.system("clear")
         character = cc.create_character(save_folder="Characters/")
-        initialize_game(console)
+        character, adventure = initialize_game(console)
     elif choice == "start":
-        if len(os.listdir("Characters")) > 0:
-            character = choose_character(console)
+        character_list = [
+            f.split(".")[0] for f in os.listdir("Characters") if f.endswith("json")
+        ]
+        if len(character_list) > 0:
+            character = choose_character(console, character_list)
             console.print("\n")
             adventure = choose_adventure(console)
-        elif len(os.listdir("Characters")) == 0:
+        elif len(character_list) == 0:
             print(
-                "Looks like you have not created any characters yet,"
+                " Looks like you have not created any characters yet,"
                 " try doing that first"
             )
             time.sleep(2)
-            initialize_game(console)
+            character, adventure = initialize_game(console)
     elif choice == "exit":
         print("Very well, see you next time, adventurer!")
         time.sleep(2)

@@ -2,6 +2,7 @@
 
 import random
 import time
+import json
 
 
 def create_character(rolls=3, save_folder=""):
@@ -14,8 +15,10 @@ def create_character(rolls=3, save_folder=""):
     roll = 1
 
     while (attributes_accepted is False) & (roll <= rolls):
-        attributes = []
-        for index in range(0, 4):
+        attributes = {"strength": 0, "agility": 0, "intelligence": 0, "charisma": 0}
+        index = 0
+        for attribute in attributes:
+            index = index + 1
             print(
                 "Let's roll some dice and find out "
                 + name
@@ -23,19 +26,19 @@ def create_character(rolls=3, save_folder=""):
                 + "." * index,
                 end="\r",
             )
-            attributes.append(random.randint(3, 10))
+            attributes[attribute] = random.randint(3, 10)
             time.sleep(0.5)
 
-        attributes.append(attributes[0] * 10)
-        attributes.append(max(attributes[0:2]) + 5)
+        attributes["hp"] = attributes["strength"] * 10
+        attributes["defense"] = max(attributes["strength"], attributes["agility"]) + 5
 
         print("\nYour adventurer is ready! Their attributes are (from 3 to 10):")
-        print("- Stength: " + str(attributes[0]))
-        print("- Agility: " + str(attributes[1]))
-        print("- Intelligence: " + str(attributes[2]))
-        print("- Charisma: " + str(attributes[3]) + "\n")
-        print("- HP (Strength * 10): " + str(attributes[4]))
-        print("- Defense (max(str/agi) + 5): " + str(attributes[5]) + "\n")
+        print("- Stength: " + str(attributes["strength"]))
+        print("- Agility: " + str(attributes["agility"]))
+        print("- Intelligence: " + str(attributes["intelligence"]))
+        print("- Charisma: " + str(attributes["charisma"]) + "\n")
+        print("- HP (Strength * 10): " + str(attributes["hp"]))
+        print("- Defense (max(str/agi) + 5): " + str(attributes["defense"]) + "\n")
 
         if roll < rolls:
             choice = input(
@@ -51,9 +54,9 @@ def create_character(rolls=3, save_folder=""):
             print("Very well, your character was created!")
             print("Returning to the starting menu...")
 
-            f = open((save_folder + name + ".txt"), mode="w")
-            for attribute in attributes:
-                f.write(str(attribute) + "\n")
+            attributes["name"] = name
+            f = open((save_folder + name + ".json"), mode="w")
+            json.dump(attributes, f, indent=4, ensure_ascii=False)
             f.close
 
             time.sleep(3.0)
@@ -63,6 +66,8 @@ def create_character(rolls=3, save_folder=""):
         else:
             print("That's not a valid choice, try again...")
             time.sleep(2)
+
+    return attributes
 
 
 if __name__ == "__main__":
