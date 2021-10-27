@@ -99,45 +99,70 @@ class Character:
         self.defense = defense
 
     def attack(self, enemy, battle_log, console, turn):
-        roll = random.randint(1, 6) + random.randint(1, 6) + self.strength
-        if (roll) > enemy.defense:
-            console.print(
-                " "
-                + self.name
-                + "'s attacking roll: "
-                + str(roll)
-                + "[bold green] (success)"
-            )
-            damage = self.strength
-            enemy.hp = enemy.hp - damage
-            battle_log.append(
-                "Turn "
-                + str(turn)
-                + ": "
-                + self.name
-                + " attacked "
-                + enemy.name
-                + " for "
-                + str(damage)
-                + " damage.\n"
-            )
+        if self.hp > 0:
+            roll = random.randint(1, 6) + random.randint(1, 6) + self.strength
+            if (roll > enemy.defense) & (roll < 12 + self.strength):
+                console.print(
+                    " "
+                    + self.name
+                    + "'s attacking roll: "
+                    + str(roll)
+                    + "[bold green] (success)"
+                )
+                damage = self.strength
+                enemy.hp = enemy.hp - damage
+                battle_log.append(
+                    "Turn "
+                    + str(turn)
+                    + ": "
+                    + self.name
+                    + " attacked "
+                    + enemy.name
+                    + " for "
+                    + str(damage)
+                    + " damage.\n"
+                )
+
+            elif roll == 12 + self.strength:
+                console.print(
+                    " "
+                    + self.name
+                    + "'s attacking roll: "
+                    + str(roll)
+                    + "[bold yellow] (CRITICAL)"
+                )
+                damage = self.strength * 2
+                enemy.hp = enemy.hp - damage
+                battle_log.append(
+                    "Turn "
+                    + str(turn)
+                    + ": "
+                    + self.name
+                    + " attacked "
+                    + enemy.name
+                    + " for "
+                    + str(damage)
+                    + " damage.\n"
+                )
+            else:
+                console.print(
+                    " "
+                    + self.name
+                    + "'s attacking roll: "
+                    + str(roll)
+                    + "[bold red] (fail)"
+                )
+                battle_log.append(
+                    "Turn "
+                    + str(turn)
+                    + ": "
+                    + self.name
+                    + " attacked "
+                    + enemy.name
+                    + " but couldn't hit. \n"
+                )
         else:
-            console.print(
-                " "
-                + self.name
-                + "'s attacking roll: "
-                + str(roll)
-                + "[bold red] (fail)"
-            )
-            battle_log.append(
-                "Turn "
-                + str(turn)
-                + ": "
-                + self.name
-                + " attacked "
-                + enemy.name
-                + " but couldn't hit. \n"
-            )
+            console.print(" " + self.name + " is dead.")
 
 
 class Battle(Menu):
