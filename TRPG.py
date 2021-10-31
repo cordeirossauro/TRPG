@@ -11,8 +11,10 @@ import sys
 import json
 
 sys.path.append("Characters")
+sys.path.append("Adventures")
 try:
     import character_creator as cc
+    import read_adventure as ra
 except ModuleNotFoundError:
     print("Couldn't find the character creator function, closing the game...")
     time.sleep(2)
@@ -43,6 +45,7 @@ class Menu:
     def choice(self, console, numbered_choices=False):
         if numbered_choices is True:
             console.print("\n What would you like to do? (Choose a number)")
+
         else:
             joined_options = "("
             for option in self.options:
@@ -56,7 +59,10 @@ class Menu:
 
             choice = console.input(" Your choice: ")
             if numbered_choices is True:
-                choice = int(choice) - 1
+                try:
+                    choice = int(choice) - 1
+                except ValueError:
+                    choice = choice
 
             if choice in self.options:
                 choice_received = True
@@ -68,26 +74,32 @@ class Menu:
 
 
 class Encounter(Menu):
-    def __init__(self, name, text, options):
+    def __init__(self, name, text, options, results):
         self.name = name
+        self.results = results
         Menu.__init__(self, text, options)
 
     def resolve_encounter(self, game_state, console):
-        os.system("clear")
-        self.print_menu(console, numbered_choices=True)
-        choice = self.choice(console, numbered_choices=True)
+        encounter_resolved = False
 
-        result = self.options[choice].split(":")[1]
-        if len(result.split(",")) == 1:
-            game_state.next_encounter = result.strip("\n ")
-        else:
-            enemy = read_character(result.split(",")[0].strip(" "))
+        while encounter_resolved is False:
+            os.system("clear")
+            self.print_menu(console, numbered_choices=True)
 
-            battle = Battle(game_state.character, enemy)
-            battle.resolve_battle(game_state, console)
+            choice = self.choice(console, numbered_choices=True)
 
-            game_state.next_encounter = result.split(",")[1].strip("\n ")
-            del self.options[choice]
+            result = self.results[choice]
+            if len(result) == 1:
+                game_state.next_encounter = result[0]
+                encounter_resolved = True
+            else:
+                enemy = read_character(result[0])
+
+                battle = Battle(game_state.character, enemy)
+                battle.resolve_battle(game_state, console)
+                game_state.next_encounter = result[1]
+                del self.options[choice]
+                encounter_resolved = True
 
 
 class Character:
@@ -270,49 +282,6 @@ class Battle(Menu):
                 game_state.game_over = True
 
 
-def read_adventure(adventure_file):
-    f = open(("Adventures/" + adventure_file + ".txt"), mode="r")
-    lines = f.readlines()
-    encounters = {}
-
-    current_line_number = 0
-    adventure_finished = False
-    while adventure_finished is False:
-        line = lines[current_line_number]
-        if line.split(":")[0] == "*encounter*":
-            name = line.split(":")[1].strip("\n ")
-            description = ""
-            description_finished = False
-            while description_finished is False:
-                current_line_number = current_line_number + 1
-                line = lines[current_line_number]
-                if line != "*options*\n":
-                    description = description + line
-                else:
-                    description_finished = True
-                    description = description[:-1]
-
-            options = []
-            options_finished = False
-            while options_finished is False:
-                current_line_number = current_line_number + 1
-                line = lines[current_line_number]
-                if (line != "*end*\n") & (line != "*end*"):
-                    options.append(line)
-                else:
-                    options_finished = True
-
-            options = dict(enumerate(options))
-            encounters[name] = Encounter(name, description, options)
-
-        current_line_number = current_line_number + 1
-        if current_line_number >= len(lines):
-            adventure_finished = True
-
-    f.close()
-    return encounters
-
-
 def choose_adventure(game_state, console):
     adventure_list = [
         f.split(".")[0] for f in os.listdir("Adventures") if f.endswith("txt")
@@ -326,9 +295,9 @@ def choose_adventure(game_state, console):
     choice = adventure_menu.choice(console, numbered_choices=True)
 
     if choice == (len(adventure_list)):
-        initialize_game(console)
+        initialize_game(game_state, console)
     else:
-        adventure = read_adventure(adventure_list[choice])
+        adventure = ra.read_adventure(adventure_list[choice])
         game_state.adventure = adventure
 
 
@@ -418,4 +387,5 @@ def main_game():
         gs.adventure[gs.next_encounter].resolve_encounter(gs, console)
 
 
-main_game()
+if __name__ == "__main__":
+    main_game()

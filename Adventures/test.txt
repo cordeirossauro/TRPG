@@ -1,10 +1,20 @@
 *encounter*: first_encounter
 this is the first encounter
+
 *options*
-first option (should take you to the third encounter): encounter3
-second option (should take you to the second encounter): encounter2
-third option (should take you back here, after a battle): goblin,first_encounter
-*end*
+*option*
+first option (should take you to the third encounter)
+*results*
+encounter3
+*option*
+second option (should take you to the second encounter)
+*results*
+encounter2
+*option*
+third option (should take you back here, after a battle)
+*results*
+goblin
+first_encounter
 
 
 *encounter*: encounter2
@@ -12,16 +22,25 @@ this is the second encounter, nice!
 can the game read the second line?
 and what about the third?
 all good!
+
 *options*
-first option (should take you to the first encounter): first_encounter
-*end*
+*option*
+first option (should take you to the first encounter)
+*results*
+first_encounter
 
 
 *encounter*: encounter3
 this is encounter number 3, very good!
 
 did the game print a blank line above this? if so, all is going good
+
 *options*
-first option (goes back to the first encounter, i hope): first_encounter
-second option (goes to the second encounter, apparently): encounter2
-*end*
+*option*
+first option (goes back to the first encounter, i hope)
+*results*
+first_encounter
+*option*
+second option (goes to the second encounter, apparently)
+*results*
+encounter2
