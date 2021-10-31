@@ -19,6 +19,12 @@ except ModuleNotFoundError:
     sys.exit()
 
 
+class GameState:
+    def __init__(self):
+        self.next_encounter = "first_encounter"
+        self.game_over = False
+
+
 class Menu:
     def __init__(self, text, options):
         self.text = text
@@ -66,26 +72,22 @@ class Encounter(Menu):
         self.name = name
         Menu.__init__(self, text, options)
 
-    def resolve_encounter(self, character, console):
+    def resolve_encounter(self, game_state, console):
         os.system("clear")
         self.print_menu(console, numbered_choices=True)
         choice = self.choice(console, numbered_choices=True)
 
         result = self.options[choice].split(":")[1]
         if len(result.split(",")) == 1:
-            next_encounter = result.strip("\n ")
+            game_state.next_encounter = result.strip("\n ")
         else:
             enemy = read_character(result.split(",")[0].strip(" "))
 
-            battle = Battle(character, enemy)
-            game_over = battle.resolve_battle(console)
-            if game_over is True:
-                next_encounter = 0
-            else:
-                next_encounter = result.split(",")[1].strip("\n ")
-                del self.options[choice]
+            battle = Battle(game_state.character, enemy)
+            battle.resolve_battle(game_state, console)
 
-        return next_encounter
+            game_state.next_encounter = result.split(",")[1].strip("\n ")
+            del self.options[choice]
 
 
 class Character:
@@ -220,7 +222,7 @@ class Battle(Menu):
         self.battle_log.append(winner + " takes the initiative... \n")
         return enemy_won_roll
 
-    def resolve_battle(self, console):
+    def resolve_battle(self, game_state, console):
         battle_finished = False
         enemy_won_roll = self.roll_initiative()
         turn = 0
@@ -255,7 +257,6 @@ class Battle(Menu):
                 )
                 input(" Press Enter to continue...")
                 battle_finished = True
-                game_over = False
             elif self.character.hp <= 0:
                 os.system("clear")
                 self.print_details(console)
@@ -266,9 +267,7 @@ class Battle(Menu):
                 )
                 input(" Press Enter to continue...")
                 battle_finished = True
-                game_over = True
-
-        return game_over
+                game_state.game_over = True
 
 
 def read_adventure(adventure_file):
@@ -314,7 +313,7 @@ def read_adventure(adventure_file):
     return encounters
 
 
-def choose_adventure(console):
+def choose_adventure(game_state, console):
     adventure_list = [
         f.split(".")[0] for f in os.listdir("Adventures") if f.endswith("txt")
     ]
@@ -327,11 +326,10 @@ def choose_adventure(console):
     choice = adventure_menu.choice(console, numbered_choices=True)
 
     if choice == (len(adventure_list)):
-        character, adventure = initialize_game(console)
+        initialize_game(console)
     else:
         adventure = read_adventure(adventure_list[choice])
-
-    return adventure
+        game_state.adventure = adventure
 
 
 def read_character(name):
@@ -351,7 +349,7 @@ def read_character(name):
     return character
 
 
-def choose_character(console, character_list):
+def choose_character(game_state, console, character_list):
     os.system("clear")
 
     text = Text("Choose your character:", justify="center")
@@ -362,11 +360,10 @@ def choose_character(console, character_list):
     choice = character_menu.choice(console, numbered_choices=True)
 
     character = read_character(character_list[choice])
+    game_state.character = character
 
-    return character
 
-
-def initialize_game(console):
+def initialize_game(game_state, console):
     text = (
         "[bold red]Welcome, adventurer! Are you ready for your next challenge?\n"
         "The world out there is full of monsters and treasures, and\n"
@@ -388,40 +385,37 @@ def initialize_game(console):
 
     if choice == "create":
         os.system("clear")
-        character = cc.create_character(save_folder="Characters/")
-        character, adventure = initialize_game(console)
+        cc.create_character(save_folder="Characters/")
+        initialize_game(game_state, console)
     elif choice == "start":
         character_list = [
             f.split(".")[0] for f in os.listdir("Characters") if f.endswith("json")
         ]
         if len(character_list) > 0:
-            character = choose_character(console, character_list)
+            choose_character(game_state, console, character_list)
             console.print("\n")
-            adventure = choose_adventure(console)
+            choose_adventure(game_state, console)
         elif len(character_list) == 0:
             print(
                 " Looks like you have not created any characters yet,"
                 " try doing that first"
             )
             time.sleep(2)
-            character, adventure = initialize_game(console)
+            initialize_game(game_state, console)
     elif choice == "exit":
         print("Very well, see you next time, adventurer!")
         time.sleep(2)
         sys.exit()
 
-    return character, adventure
-
 
 def main_game():
     console = Console()
-    character, adventure = initialize_game(console)
+    gs = GameState()
+
+    initialize_game(gs, console)
     exit_game = False
-    next_encounter = "first_encounter"
     while exit_game is False:
-        next_encounter = adventure[next_encounter].resolve_encounter(character, console)
-        if next_encounter == 0:
-            exit_game = True
+        gs.adventure[gs.next_encounter].resolve_encounter(gs, console)
 
 
 main_game()

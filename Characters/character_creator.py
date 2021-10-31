@@ -67,8 +67,6 @@ def create_character(rolls=3, save_folder=""):
             print("That's not a valid choice, try again...")
             time.sleep(2)
 
-    return attributes
-
 
 if __name__ == "__main__":
     create_character()
