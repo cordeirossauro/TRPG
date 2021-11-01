@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+from rich.text import Text
 
 
 def read_adventure(adventure_file):
@@ -59,6 +60,27 @@ def read_adventure(adventure_file):
 
     f.close()
     return encounters
+
+
+def choose_adventure(game_state, console):
+    import TRPG
+
+    adventure_list = [
+        f.split(".")[0] for f in os.listdir("Adventures") if f.endswith("txt")
+    ]
+    text = Text("Which adventure are you taking today?", justify="center")
+    options = dict(enumerate(adventure_list))
+    options[len(adventure_list)] = "Return"
+
+    adventure_menu = TRPG.Menu(text, options)
+    adventure_menu.print_menu(console, numbered_choices=True)
+    choice = adventure_menu.choice(console, numbered_choices=True)
+
+    if choice == (len(adventure_list)):
+        TRPG.initialize_game(game_state, console)
+    else:
+        adventure = read_adventure(adventure_list[choice])
+        game_state.adventure = adventure
 
 
 if __name__ == "__main__":

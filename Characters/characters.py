@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
+import os
+from rich.text import Text
+import json
 import random
 import time
-import json
 
 
 def create_character(rolls=3, save_folder=""):
@@ -68,5 +70,36 @@ def create_character(rolls=3, save_folder=""):
             time.sleep(2)
 
 
-if __name__ == "__main__":
-    create_character()
+def read_character(name):
+    import TRPG
+
+    f = open(("Characters/" + name + ".json"), mode="r")
+    attributes = json.load(f)
+
+    character = TRPG.Character(
+        attributes["name"],
+        attributes["strength"],
+        attributes["agility"],
+        attributes["intelligence"],
+        attributes["charisma"],
+        attributes["hp"],
+        attributes["defense"],
+    )
+
+    return character
+
+
+def choose_character(game_state, console, character_list):
+    import TRPG
+
+    os.system("clear")
+
+    text = Text("Choose your character:", justify="center")
+    options = dict(enumerate(character_list))
+
+    character_menu = TRPG.Menu(text, options)
+    character_menu.print_menu(console, numbered_choices=True)
+    choice = character_menu.choice(console, numbered_choices=True)
+
+    character = read_character(character_list[choice])
+    game_state.character = character

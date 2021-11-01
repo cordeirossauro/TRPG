@@ -8,14 +8,14 @@ import os
 import random
 import time
 import sys
-import json
-import joblib as jb
 
 sys.path.append("Characters")
 sys.path.append("Adventures")
+sys.path.append("Saves")
 try:
-    import character_creator as cc
-    import read_adventure as ra
+    import characters as cha
+    import adventures as adv
+    import saves as sav
 except ModuleNotFoundError:
     print("Couldn't find the character creator function, closing the game...")
     time.sleep(2)
@@ -106,7 +106,7 @@ class Encounter(Menu):
                     game_state.next_encounter = result[0]
                     encounter_resolved = True
                 else:
-                    enemy = read_character(result[0])
+                    enemy = cha.read_character(result[0])
 
                     battle = Battle(game_state.character, enemy)
                     battle.resolve_battle(game_state, console)
@@ -298,11 +298,6 @@ class Battle(Menu):
                 game_state.game_over = True
 
 
-def save_game(game_state, console):
-    file_name = console.input(" Name for the save file: ")
-    jb.dump(game_state, open(("saves/" + file_name + ".sav"), "wb"), compress=9)
-
-
 def game_menu(game_state, console):
     os.system("clear")
     text = Text(
@@ -320,77 +315,10 @@ def game_menu(game_state, console):
     choice = game_menu.choice(console)
 
     if choice == "save":
-        save_game(game_state, console)
+        sav.save_game(game_state, console)
         sys.exit()
     elif choice == "exit":
         sys.exit()
-
-
-def choose_adventure(game_state, console):
-    adventure_list = [
-        f.split(".")[0] for f in os.listdir("Adventures") if f.endswith("txt")
-    ]
-    text = Text("Which adventure are you taking today?", justify="center")
-    options = dict(enumerate(adventure_list))
-    options[len(adventure_list)] = "Return"
-
-    adventure_menu = Menu(text, options)
-    adventure_menu.print_menu(console, numbered_choices=True)
-    choice = adventure_menu.choice(console, numbered_choices=True)
-
-    if choice == (len(adventure_list)):
-        initialize_game(game_state, console)
-    else:
-        adventure = ra.read_adventure(adventure_list[choice])
-        game_state.adventure = adventure
-
-
-def read_character(name):
-    f = open(("Characters/" + name + ".json"), mode="r")
-    attributes = json.load(f)
-
-    character = Character(
-        attributes["name"],
-        attributes["strength"],
-        attributes["agility"],
-        attributes["intelligence"],
-        attributes["charisma"],
-        attributes["hp"],
-        attributes["defense"],
-    )
-
-    return character
-
-
-def choose_character(game_state, console, character_list):
-    os.system("clear")
-
-    text = Text("Choose your character:", justify="center")
-    options = dict(enumerate(character_list))
-
-    character_menu = Menu(text, options)
-    character_menu.print_menu(console, numbered_choices=True)
-    choice = character_menu.choice(console, numbered_choices=True)
-
-    character = read_character(character_list[choice])
-    game_state.character = character
-
-
-def choose_save(game_state, console, save_list):
-    os.system("clear")
-
-    text = Text("Choose the game to load:", justify="center")
-    options = dict(enumerate(save_list))
-
-    save_menu = Menu(text, options)
-    save_menu.print_menu(console, numbered_choices=True)
-    choice = save_menu.choice(console, numbered_choices=True)
-
-    loaded_game_state = jb.load(open(("saves/" + options[choice] + ".sav"), "rb"))
-
-    game_state.adventure = loaded_game_state.adventure
-    game_state.character = loaded_game_state.character
-    game_state.next_encounter = loaded_game_state.next_encounter
 
 
 def initialize_game(game_state, console):
@@ -417,16 +345,16 @@ def initialize_game(game_state, console):
 
     if choice == "create":
         os.system("clear")
-        cc.create_character(save_folder="Characters/")
+        cha.create_character(save_folder="Characters/")
         initialize_game(game_state, console)
     elif choice == "start":
         character_list = [
             f.split(".")[0] for f in os.listdir("Characters") if f.endswith("json")
         ]
         if len(character_list) > 0:
-            choose_character(game_state, console, character_list)
+            cha.choose_character(game_state, console, character_list)
             console.print("\n")
-            choose_adventure(game_state, console)
+            adv.choose_adventure(game_state, console)
         elif len(character_list) == 0:
             console.print(
                 " Looks like you have not created any characters yet,"
@@ -436,9 +364,9 @@ def initialize_game(game_state, console):
             initialize_game(game_state, console)
 
     elif choice == "load":
-        save_list = [f.split(".")[0] for f in os.listdir("saves") if f.endswith("sav")]
+        save_list = [f.split(".")[0] for f in os.listdir("Saves") if f.endswith("sav")]
         if len(save_list) > 0:
-            game_state = choose_save(game_state, console, save_list)
+            game_state = sav.choose_save(game_state, console, save_list)
         elif len(save_list) == 0:
             console.print(" Looks like you don't have any saved files...")
             time.sleep(2)
