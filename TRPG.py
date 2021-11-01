@@ -17,7 +17,7 @@ try:
     import adventures as adv
     import saves as sav
 except ModuleNotFoundError:
-    print("Couldn't find the character creator function, closing the game...")
+    print("Couldn't find the necessary functions, closing the game...")
     time.sleep(2)
     sys.exit()
 
