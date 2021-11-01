@@ -9,6 +9,7 @@ import random
 import time
 import sys
 import json
+import joblib as jb
 
 sys.path.append("Characters")
 sys.path.append("Adventures")
@@ -42,14 +43,21 @@ class Menu:
             else:
                 console.print("- " + self.options[option].split(":")[0])
 
-    def choice(self, console, numbered_choices=False):
+    def choice(self, console, numbered_choices=False, menu=False):
+
+        if menu is True:
+            self.options["menu"] = "Open the game menu"
+
         if numbered_choices is True:
-            console.print("\n What would you like to do? (Choose a number)")
+            if menu is True:
+                console.print("\n What would you like to do? (Choose a number or menu)")
+            else:
+                console.print("\n What would you like to do? (Choose a number)")
 
         else:
             joined_options = "("
             for option in self.options:
-                joined_options = joined_options + "/" + option
+                joined_options = joined_options + "/" + str(option)
             joined_options = joined_options + ")"
             joined_options = joined_options.replace("(/", "(")
             console.print("\n What would you like to do? " + joined_options)
@@ -70,6 +78,9 @@ class Menu:
                 console.print(" That's not a valid choice, try again...")
                 time.sleep(1.0)
 
+        if menu is True:
+            del self.options["menu"]
+
         return choice
 
 
@@ -86,20 +97,25 @@ class Encounter(Menu):
             os.system("clear")
             self.print_menu(console, numbered_choices=True)
 
-            choice = self.choice(console, numbered_choices=True)
+            choice = self.choice(console, numbered_choices=True, menu=True)
 
-            result = self.results[choice]
-            if len(result) == 1:
-                game_state.next_encounter = result[0]
-                encounter_resolved = True
-            else:
-                enemy = read_character(result[0])
+            if choice != "menu":
+                result = self.results[choice]
 
-                battle = Battle(game_state.character, enemy)
-                battle.resolve_battle(game_state, console)
-                game_state.next_encounter = result[1]
-                del self.options[choice]
-                encounter_resolved = True
+                if len(result) == 1:
+                    game_state.next_encounter = result[0]
+                    encounter_resolved = True
+                else:
+                    enemy = read_character(result[0])
+
+                    battle = Battle(game_state.character, enemy)
+                    battle.resolve_battle(game_state, console)
+                    game_state.next_encounter = result[1]
+                    del self.options[choice]
+                    encounter_resolved = True
+
+            elif choice == "menu":
+                game_menu(game_state, console)
 
 
 class Character:
@@ -282,6 +298,34 @@ class Battle(Menu):
                 game_state.game_over = True
 
 
+def save_game(game_state, console):
+    file_name = console.input(" Name for the save file: ")
+    jb.dump(game_state, open(("saves/" + file_name + ".sav"), "wb"), compress=9)
+
+
+def game_menu(game_state, console):
+    os.system("clear")
+    text = Text(
+        "After a very tiring adventure, you finnaly find a place to rest",
+        justify="center",
+    )
+    options = {
+        "save": "Save current adventure and exit",
+        "exit": "Exit without saving",
+        "return": "Return to your adventure",
+    }
+
+    game_menu = Menu(text, options)
+    game_menu.print_menu(console)
+    choice = game_menu.choice(console)
+
+    if choice == "save":
+        save_game(game_state, console)
+        sys.exit()
+    elif choice == "exit":
+        sys.exit()
+
+
 def choose_adventure(game_state, console):
     adventure_list = [
         f.split(".")[0] for f in os.listdir("Adventures") if f.endswith("txt")
@@ -332,7 +376,25 @@ def choose_character(game_state, console, character_list):
     game_state.character = character
 
 
+def choose_save(game_state, console, save_list):
+    os.system("clear")
+
+    text = Text("Choose the game to load:", justify="center")
+    options = dict(enumerate(save_list))
+
+    save_menu = Menu(text, options)
+    save_menu.print_menu(console, numbered_choices=True)
+    choice = save_menu.choice(console, numbered_choices=True)
+
+    loaded_game_state = jb.load(open(("saves/" + options[choice] + ".sav"), "rb"))
+
+    game_state.adventure = loaded_game_state.adventure
+    game_state.character = loaded_game_state.character
+    game_state.next_encounter = loaded_game_state.next_encounter
+
+
 def initialize_game(game_state, console):
+
     text = (
         "[bold red]Welcome, adventurer! Are you ready for your next challenge?\n"
         "The world out there is full of monsters and treasures, and\n"
@@ -343,6 +405,7 @@ def initialize_game(game_state, console):
     options = {
         "create": "Create a character",
         "start": "Start an adventure",
+        "load": "Load a saved game",
         "exit": "Exit",
     }
 
@@ -365,14 +428,23 @@ def initialize_game(game_state, console):
             console.print("\n")
             choose_adventure(game_state, console)
         elif len(character_list) == 0:
-            print(
+            console.print(
                 " Looks like you have not created any characters yet,"
                 " try doing that first"
             )
             time.sleep(2)
             initialize_game(game_state, console)
+
+    elif choice == "load":
+        save_list = [f.split(".")[0] for f in os.listdir("saves") if f.endswith("sav")]
+        if len(save_list) > 0:
+            game_state = choose_save(game_state, console, save_list)
+        elif len(save_list) == 0:
+            console.print(" Looks like you don't have any saved files...")
+            time.sleep(2)
+            initialize_game(game_state, console)
     elif choice == "exit":
-        print("Very well, see you next time, adventurer!")
+        console.print("Very well, see you next time, adventurer!")
         time.sleep(2)
         sys.exit()
 
