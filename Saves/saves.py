@@ -10,7 +10,7 @@ def save_game(game_state, console):
     jb.dump(game_state, open(("Saves/" + file_name + ".sav"), "wb"), compress=9)
 
 
-def choose_save(game_state, console, save_list):
+def choose_save(game_state, console, save_list, game_window):
     import TRPG
 
     os.system("clear")
@@ -18,8 +18,9 @@ def choose_save(game_state, console, save_list):
     text = Text("Choose the game to load:", justify="center")
     options = dict(enumerate(save_list))
 
-    save_menu = TRPG.Menu(text, options)
+    save_menu = TRPG.Menu(text, options, console, game_window)
     save_menu.print_menu(console, numbered_choices=True)
+    save_menu.print_options()
     choice = save_menu.choice(console, numbered_choices=True)
 
     loaded_game_state = jb.load(open(("Saves/" + options[choice] + ".sav"), "rb"))

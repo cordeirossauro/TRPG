@@ -4,7 +4,7 @@ import os
 from rich.text import Text
 
 
-def read_adventure(adventure_file):
+def read_adventure(adventure_file, console, game_window):
     import TRPG
 
     f = open(("Adventures/" + adventure_file + ".txt"), mode="r")
@@ -55,15 +55,23 @@ def read_adventure(adventure_file):
         results = dict(enumerate(results))
 
         encounters[encounter_name] = TRPG.Encounter(
-            encounter_name, encounter_description, options, results
+            encounter_name,
+            encounter_description,
+            options,
+            results,
+            console,
+            game_window,
         )
 
     f.close()
     return encounters
 
 
-def choose_adventure(game_state, console):
+def choose_adventure(game_state, console, game_window):
+
     import TRPG
+
+    os.system("clear")
 
     adventure_list = [
         f.split(".")[0] for f in os.listdir("Adventures") if f.endswith("txt")
@@ -72,17 +80,13 @@ def choose_adventure(game_state, console):
     options = dict(enumerate(adventure_list))
     options[len(adventure_list)] = "Return"
 
-    adventure_menu = TRPG.Menu(text, options)
-    adventure_menu.print_menu(console, numbered_choices=True)
-    choice = adventure_menu.choice(console, numbered_choices=True)
+    adventure_menu = TRPG.Menu(text, options, console, game_window)
+    adventure_menu.print_menu()
+    adventure_menu.print_options()
+    choice = adventure_menu.choice()
 
     if choice == (len(adventure_list)):
         TRPG.initialize_game(game_state, console)
     else:
-        adventure = read_adventure(adventure_list[choice])
+        adventure = read_adventure(adventure_list[choice], console, game_window)
         game_state.adventure = adventure
-
-
-if __name__ == "__main__":
-    os.chdir("..")
-    test = read_adventure("test")

@@ -89,7 +89,7 @@ def read_character(name):
     return character
 
 
-def choose_character(game_state, console, character_list):
+def choose_character(game_state, console, character_list, game_window):
     import TRPG
 
     os.system("clear")
@@ -97,9 +97,10 @@ def choose_character(game_state, console, character_list):
     text = Text("Choose your character:", justify="center")
     options = dict(enumerate(character_list))
 
-    character_menu = TRPG.Menu(text, options)
-    character_menu.print_menu(console, numbered_choices=True)
-    choice = character_menu.choice(console, numbered_choices=True)
+    character_menu = TRPG.Menu(text, options, console, game_window)
+    character_menu.print_menu()
+    character_menu.print_options()
+    choice = character_menu.choice()
 
     character = read_character(character_list[choice])
     game_state.character = character

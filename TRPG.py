@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 
+from pynput import keyboard
+
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 from rich.columns import Columns
+from rich import box
 import os
 import random
 import time
 import sys
+import subprocess
+import re
 
 sys.path.append("Characters")
 sys.path.append("Adventures")
@@ -29,75 +34,78 @@ class GameState:
 
 
 class Menu:
-    def __init__(self, text, options):
+    def __init__(self, text, options, console, game_window):
         self.text = text
         self.options = options
+        self.current_option = 0
+        self.choice_made = False
+        self.console = console
+        self.game_window = game_window
 
-    def print_menu(self, console, numbered_choices=False):
-        console.print(Panel(self.text, width=64))
+    def print_menu(self):
+        self.console.print(Panel(self.text, width=64), justify="center")
+
+    def print_options(self):
+        current_option_key = list(self.options.keys())[self.current_option]
+        options_text = ""
         for option in self.options:
-            if numbered_choices is True:
-                console.print(
-                    str(int(option) + 1) + ". " + self.options[option].split(":")[0]
-                )
+            if option == current_option_key:
+                options_text = options_text + "> " + self.options[option] + " <\n"
             else:
-                console.print("- " + self.options[option].split(":")[0])
+                options_text = options_text + self.options[option] + "\n"
+        options_text = options_text.rstrip("\n")
 
-    def choice(self, console, numbered_choices=False, menu=False):
+        self.console.print(
+            Panel(Text(options_text, justify="center"), box=box.SIMPLE, width=64),
+            justify="center",
+        )
 
-        if menu is True:
-            self.options["menu"] = "Open the game menu"
+    def on_press(self, key):
+        if get_active_window_title() == self.game_window:
+            if key == keyboard.Key.up:
+                if self.current_option > 0:
+                    self.current_option = self.current_option - 1
+                os.system("clear")
+                self.print_menu()
+                self.print_options()
 
-        if numbered_choices is True:
-            if menu is True:
-                console.print("\n What would you like to do? (Choose a number or menu)")
+            elif key == keyboard.Key.down:
+                if self.current_option < len(self.options) - 1:
+                    self.current_option = self.current_option + 1
+                os.system("clear")
+                self.print_menu()
+                self.print_options()
+
+            elif key == keyboard.Key.enter:
+                return False
+
             else:
-                console.print("\n What would you like to do? (Choose a number)")
+                os.system("clear")
+                self.print_menu()
+                self.print_options()
 
-        else:
-            joined_options = "("
-            for option in self.options:
-                joined_options = joined_options + "/" + str(option)
-            joined_options = joined_options + ")"
-            joined_options = joined_options.replace("(/", "(")
-            console.print("\n What would you like to do? " + joined_options)
+    def choice(self):
+        with keyboard.Listener(on_press=self.on_press) as listener:
+            listener.join()
 
-        choice_received = False
-        while choice_received is False:
-
-            choice = console.input(" Your choice: ")
-            if numbered_choices is True:
-                try:
-                    choice = int(choice) - 1
-                except ValueError:
-                    choice = choice
-
-            if choice in self.options:
-                choice_received = True
-            else:
-                console.print(" That's not a valid choice, try again...")
-                time.sleep(1.0)
-
-        if menu is True:
-            del self.options["menu"]
-
-        return choice
+        return list(self.options.keys())[self.current_option]
 
 
 class Encounter(Menu):
-    def __init__(self, name, text, options, results):
+    def __init__(self, name, text, options, results, console, game_window):
         self.name = name
         self.results = results
-        Menu.__init__(self, text, options)
+        Menu.__init__(self, text, options, console, game_window)
 
-    def resolve_encounter(self, game_state, console):
+    def resolve_encounter(self, game_state):
         encounter_resolved = False
 
         while encounter_resolved is False:
             os.system("clear")
-            self.print_menu(console, numbered_choices=True)
+            self.print_menu()
+            self.print_options()
 
-            choice = self.choice(console, numbered_choices=True, menu=True)
+            choice = self.choice()
 
             if choice != "menu":
                 result = self.results[choice]
@@ -108,14 +116,17 @@ class Encounter(Menu):
                 else:
                     enemy = cha.read_character(result[0])
 
-                    battle = Battle(game_state.character, enemy)
-                    battle.resolve_battle(game_state, console)
+                    battle = Battle(
+                        game_state.character, enemy, self.console, self.game_window
+                    )
+                    battle.resolve_battle(game_state, self.console)
                     game_state.next_encounter = result[1]
                     del self.options[choice]
+                    self.current_option = 0
                     encounter_resolved = True
 
             elif choice == "menu":
-                game_menu(game_state, console)
+                game_menu(game_state, self.console, self.game_window)
 
 
 class Character:
@@ -137,7 +148,8 @@ class Character:
                     + self.name
                     + "'s attacking roll: "
                     + str(roll)
-                    + "[bold green] (success)"
+                    + "[bold green] (success)",
+                    justify="center",
                 )
                 damage = self.strength
                 enemy.hp = enemy.hp - damage
@@ -159,7 +171,8 @@ class Character:
                     + self.name
                     + "'s attacking roll: "
                     + str(roll)
-                    + "[bold yellow] (CRITICAL)"
+                    + "[bold yellow] (CRITICAL)",
+                    justify="center",
                 )
                 damage = self.strength * 2
                 enemy.hp = enemy.hp - damage
@@ -180,7 +193,8 @@ class Character:
                     + self.name
                     + "'s attacking roll: "
                     + str(roll)
-                    + "[bold red] (fail)"
+                    + "[bold red] (fail)",
+                    justify="center",
                 )
                 battle_log.append(
                     "Turn "
@@ -192,15 +206,21 @@ class Character:
                     + " but couldn't hit. \n"
                 )
         else:
-            console.print(" " + self.name + " is dead.")
+            console.print(" " + self.name + " is dead.", justify="center")
 
 
 class Battle(Menu):
-    def __init__(self, character, enemy):
+    def __init__(self, character, enemy, console, game_window):
         self.character = character
         self.enemy = enemy
         self.battle_log = []
-        Menu.__init__(self, "", {"attack": "Attack your enemy", "flee": "Try to flee"})
+        Menu.__init__(
+            self,
+            "",
+            {"attack": "Attack your enemy", "flee": "Try to flee"},
+            console,
+            game_window,
+        )
 
     def make_sheet(self, character):
         sheet = Text()
@@ -213,7 +233,37 @@ class Battle(Menu):
 
         return sheet
 
-    def print_details(self, console):
+    def on_press(self, key):
+        if get_active_window_title() == self.game_window:
+            if key == keyboard.Key.up:
+                if self.current_option > 0:
+                    self.current_option = self.current_option - 1
+                os.system("clear")
+                self.print_details()
+                self.print_options()
+
+            elif key == keyboard.Key.down:
+                if self.current_option < len(self.options) - 1:
+                    self.current_option = self.current_option + 1
+                os.system("clear")
+                self.print_details()
+                self.print_options()
+
+            elif key == keyboard.Key.enter:
+                return False
+
+            else:
+                os.system("clear")
+                self.print_details()
+                self.print_options()
+
+    def choice(self, numbered_choices=False):
+        with keyboard.Listener(on_press=self.on_press) as listener:
+            listener.join()
+
+        return list(self.options.keys())[self.current_option]
+
+    def print_details(self):
         character_sheet = self.make_sheet(self.character)
         enemy_sheet = self.make_sheet(self.enemy)
 
@@ -225,10 +275,15 @@ class Battle(Menu):
             width=30,
         )
 
-        console.print(Panel(Text("Battle", justify="center"), width=62))
-        console.print(columns)
-        console.print(
-            Panel("".join(self.battle_log[-6:]), title="Battle Log", width=62, height=8)
+        self.console.print(
+            Panel(Text("Battle", justify="center"), width=62), justify="center"
+        )
+        self.console.print(columns, justify="center")
+        self.console.print(
+            Panel(
+                "".join(self.battle_log[-6:]), title="Battle Log", width=62, height=8
+            ),
+            justify="center",
         )
 
     def roll_initiative(self):
@@ -258,8 +313,9 @@ class Battle(Menu):
         while battle_finished is False:
             os.system("clear")
             turn = turn + 1
-            self.print_details(console)
-            choice = self.choice(console)
+            self.print_details()
+            self.print_options()
+            choice = self.choice()
             console.print("")
             if choice == "attack":
                 if enemy_won_roll is True:
@@ -278,7 +334,7 @@ class Battle(Menu):
 
             if self.enemy.hp <= 0:
                 os.system("clear")
-                self.print_details(console)
+                self.print_details()
                 console.print(
                     "[bold yellow]\n You won the battle! Your enemy "
                     "lays dead before you..."
@@ -287,7 +343,7 @@ class Battle(Menu):
                 battle_finished = True
             elif self.character.hp <= 0:
                 os.system("clear")
-                self.print_details(console)
+                self.print_details()
                 console.print(
                     "[bold red]\n Even with all your might, this enemy "
                     "proved too powerful for you.\n Your adventure "
@@ -298,8 +354,30 @@ class Battle(Menu):
                 game_state.game_over = True
 
 
-def game_menu(game_state, console):
-    os.system("clear")
+def get_active_window_title():
+    root = subprocess.Popen(
+        ["xprop", "-root", "_NET_ACTIVE_WINDOW"], stdout=subprocess.PIPE
+    )
+    stdout, stderr = root.communicate()
+
+    m = re.search(b"^_NET_ACTIVE_WINDOW.* ([\\w]+)$", stdout)
+    if m is not None:
+        window_id = m.group(1)
+        window = subprocess.Popen(
+            ["xprop", "-id", window_id, "WM_NAME"], stdout=subprocess.PIPE
+        )
+        stdout, stderr = window.communicate()
+    else:
+        return None
+
+    match = re.match(b"WM_NAME\\(\\w+\\) = (?P<name>.+)$", stdout)
+    if match is not None:
+        return match.group("name").strip(b'"')
+
+    return None
+
+
+def game_menu(game_state, console, game_window):
     text = Text(
         "After a very tiring adventure, you finnaly find a place to rest",
         justify="center",
@@ -310,9 +388,9 @@ def game_menu(game_state, console):
         "return": "Return to your adventure",
     }
 
-    game_menu = Menu(text, options)
-    game_menu.print_menu(console)
-    choice = game_menu.choice(console)
+    game_menu = Menu(text, options, console, game_window)
+    game_menu.print_menu()
+    choice = game_menu.choice()
 
     if choice == "save":
         sav.save_game(game_state, console)
@@ -321,7 +399,7 @@ def game_menu(game_state, console):
         sys.exit()
 
 
-def initialize_game(game_state, console):
+def initialize_game(game_state, console, game_window):
 
     text = (
         "[bold red]Welcome, adventurer! Are you ready for your next challenge?\n"
@@ -339,29 +417,30 @@ def initialize_game(game_state, console):
 
     os.system("clear")
 
-    starting_menu = Menu(text, options)
-    starting_menu.print_menu(console)
-    choice = starting_menu.choice(console)
+    starting_menu = Menu(text, options, console, game_window)
+    starting_menu.print_menu()
+    starting_menu.print_options()
+    choice = starting_menu.choice()
 
     if choice == "create":
         os.system("clear")
         cha.create_character(save_folder="Characters/")
-        initialize_game(game_state, console)
+        initialize_game(game_state, console, game_window)
     elif choice == "start":
         character_list = [
             f.split(".")[0] for f in os.listdir("Characters") if f.endswith("json")
         ]
         if len(character_list) > 0:
-            cha.choose_character(game_state, console, character_list)
+            cha.choose_character(game_state, console, character_list, game_window)
             console.print("\n")
-            adv.choose_adventure(game_state, console)
+            adv.choose_adventure(game_state, console, game_window)
         elif len(character_list) == 0:
             console.print(
                 " Looks like you have not created any characters yet,"
                 " try doing that first"
             )
             time.sleep(2)
-            initialize_game(game_state, console)
+            initialize_game(game_state, console, game_window)
 
     elif choice == "load":
         save_list = [f.split(".")[0] for f in os.listdir("Saves") if f.endswith("sav")]
@@ -370,7 +449,7 @@ def initialize_game(game_state, console):
         elif len(save_list) == 0:
             console.print(" Looks like you don't have any saved files...")
             time.sleep(2)
-            initialize_game(game_state, console)
+            initialize_game(game_state, console, game_window)
     elif choice == "exit":
         console.print("Very well, see you next time, adventurer!")
         time.sleep(2)
@@ -378,13 +457,15 @@ def initialize_game(game_state, console):
 
 
 def main_game():
-    console = Console()
+    sys.stdout.write("\x1b[8;30;80t")
+    console = Console(width=80, height=30)
+    game_window = get_active_window_title()
     gs = GameState()
 
-    initialize_game(gs, console)
+    initialize_game(gs, console, game_window)
     exit_game = False
     while exit_game is False:
-        gs.adventure[gs.next_encounter].resolve_encounter(gs, console)
+        gs.adventure[gs.next_encounter].resolve_encounter(gs)
 
 
 if __name__ == "__main__":
