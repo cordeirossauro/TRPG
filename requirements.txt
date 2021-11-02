@@ -3,8 +3,11 @@
 # TRPG/Saves/saves.py: 5
 joblib == 1.0.1
 
+# TRPG/TRPG.py: 3
+pynput == 1.7.4
+
 # TRPG/Adventures/adventures.py: 4
 # TRPG/Characters/characters.py: 4
 # TRPG/Saves/saves.py: 4
-# TRPG/TRPG.py: 3,4,5,6
+# TRPG/TRPG.py: 5,6,7,8,9
 rich == 10.12.0
