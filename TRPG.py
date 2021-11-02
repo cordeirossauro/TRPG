@@ -316,7 +316,6 @@ class Battle(Menu):
             self.print_details()
             self.print_options()
             choice = self.choice()
-            console.print("")
             if choice == "attack":
                 if enemy_won_roll is True:
                     self.enemy.attack(self.character, self.battle_log, console, turn)
@@ -337,9 +336,10 @@ class Battle(Menu):
                 self.print_details()
                 console.print(
                     "[bold yellow]\n You won the battle! Your enemy "
-                    "lays dead before you..."
+                    "lays dead before you...",
+                    justify="center",
                 )
-                input(" Press Enter to continue...")
+                time.sleep(3)
                 battle_finished = True
             elif self.character.hp <= 0:
                 os.system("clear")
@@ -347,9 +347,10 @@ class Battle(Menu):
                 console.print(
                     "[bold red]\n Even with all your might, this enemy "
                     "proved too powerful for you.\n Your adventure "
-                    "ends here..."
+                    "ends here...",
+                    justify="center",
                 )
-                input(" Press Enter to continue...")
+                time.sleep(3)
                 battle_finished = True
                 game_state.game_over = True
 

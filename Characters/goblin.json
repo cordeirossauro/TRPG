@@ -3,7 +3,7 @@
     "agility": 6,
     "intelligence": 8,
     "charisma": 7,
-    "hp": 40,
+    "hp": 8,
     "defense": 11,
     "name": "goblin"
 }
