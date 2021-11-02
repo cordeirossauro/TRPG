@@ -1,7 +1,7 @@
 # TRPG
 General Menus                         |Battle System
 :------------------------------------:|:------------------------------------:
-![](https://i.imgur.com/JqvDBmG.gif)  |![](https://i.imgur.com/2rJPcth.gif)
+![](https://i.imgur.com/9CThK5e.gif)  |![](https://i.imgur.com/GKfgAOd.gif)
 
 Simple Python text-based RPG that can be played on the terminal. New adventures are very easily added to the ones already
 existent (through a simple .txt), and all characters are persistent and created directly from the terminal.
